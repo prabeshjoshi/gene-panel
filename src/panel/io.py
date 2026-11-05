@@ -7,16 +7,46 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
 
 
+def _parse_value(text: str):
+    """Parse one flat-YAML value: "quoted string", number, true/false, or [list]."""
+    text = text.strip()
+    if text.startswith('"'):
+        end = text.index('"', 1)
+        return text[1:end]
+    text = text.split(" #", 1)[0].strip()  # trailing comment
+    if text in ("true", "false"):
+        return text == "true"
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        return text
+
+
 def load_config(path: str | Path | None = None) -> dict:
-    """Load config.yaml (default: project root)."""
+    """Load config.yaml (default: project root).
+
+    The config is deliberately flat (one `key: value` per line; values are quoted strings,
+    numbers, true/false or JSON-style lists), so it is parsed without a YAML dependency.
+    """
     path = Path(path) if path is not None else ROOT / "config.yaml"
+    cfg: dict = {}
     with open(path) as fh:
-        return yaml.safe_load(fh)
+        for lineno, line in enumerate(fh, 1):
+            s = line.strip()
+            if not s or s.startswith("#"):
+                continue
+            if ":" not in s:
+                raise ValueError(f"{path}:{lineno}: expected 'key: value'")
+            key, val = s.split(":", 1)
+            key = key.strip()
+            if key in cfg:
+                raise ValueError(f"{path}:{lineno}: duplicate key {key!r}")
+            cfg[key] = _parse_value(val)
+    return cfg
 
 
 def _jsonable(obj):

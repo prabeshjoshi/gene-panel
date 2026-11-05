@@ -1,5 +1,9 @@
 # Data is never committed (raw downloads and processed outputs).
-data/
+# Only the provenance record data/raw/SOURCES.md is tracked.
+data/*
+!data/raw/
+data/raw/*
+!data/raw/SOURCES.md
 .venv/
 __pycache__/
 *.pyc

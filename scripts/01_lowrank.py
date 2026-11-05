@@ -40,14 +40,8 @@ def main() -> None:
 
     per_seed = {}
     for seed in cfg["seeds_gates"]:
-        s = splits[str(seed)]
-        Xtr = X.loc[s["train"]].to_numpy(dtype=np.float64)
-        Xte = X.loc[s["test"]].to_numpy(dtype=np.float64)
         # Gene ranking, centring and scaling are fitted on training samples only.
-        top = sel.top_variance_genes(Xtr, cfg["n_genes"])
-        Xtr, Xte = Xtr[:, top], Xte[:, top]
-        std = sel.Standardizer.fit(Xtr)
-        Ztr, Zte = std.transform(Xtr), std.transform(Xte)
+        Ztr, Zte, _ = sel.prepare_split(X, splits[str(seed)], cfg["n_genes"])
         per_seed[seed] = {
             "n_train": int(Ztr.shape[0]),
             "n_test": int(Zte.shape[0]),

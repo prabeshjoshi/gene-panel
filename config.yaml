@@ -31,9 +31,19 @@ toy_pool_size: 40
 toy_k: [2, 3, 4, 5]
 toy_n_pools: 20
 
+# --- shared ridge predictor (Phase 1 on); alpha chosen once on the first gate seed ---
+ridge_alphas: [0.01, 0.1, 1.0, 10.0, 100.0, 1000.0, 10000.0]
+ridge_cv_folds: 5
+ridge_cv_panels_per_k: 10      # random panels per k used to score each alpha in CV
+rng_stream_panels: 1           # RNG stream for evaluation panels: default_rng([seed, k, stream])
+rng_stream_alpha_cv: 2         # RNG stream for the CV panels used to pick alpha
+
 # --- phase 0 (low rank) ---
 lowrank_q: [5, 10, 20, 50, 100]
 gate_lowrank_q: 20
+
+# --- phase 1 (headroom) ---
+gate_headroom_k: 20
 
 # --- gates ---
 gate_lowrank_r2_at_20: 0.5
