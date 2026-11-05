@@ -107,12 +107,13 @@ def main() -> None:
     gap_m, gap_sd = across(lambda s, k: per_seed[s]["ceiling_r2"][k]
                            - per_seed[s]["k"][k]["r2_all"]["median"])
 
-    print("\nk    ceiling        random R2_all median (5%-95%)   best random   "
+    print("\nk    ceiling        random R2_all median (5%-95%)   best random*  "
           "Q2_nonpanel median   gap (ceiling - median)")
     for i, k in enumerate(ks):
         print(f"{k:<4} {ceil_m[i]:.4f}±{ceil_sd[i]:.4f}  {med_m[i]:.4f}±{med_sd[i]:.4f} "
               f"({p5_m[i]:.4f}-{p95_m[i]:.4f})   {max_m[i]:.4f}        "
               f"{q2_m[i]:.4f}±{q2_sd[i]:.4f}      {gap_m[i]:.4f}±{gap_sd[i]:.4f}")
+    print("* best of the random panels picked ON TEST: optimistic, not a fair baseline")
 
     gi = ks.index(gate_k)
     headroom = float(gap_m[gi])
@@ -136,7 +137,7 @@ def main() -> None:
             "ceiling_mean": ceil_m[i], "ceiling_sd": ceil_sd[i],
             "random_r2_median_mean": med_m[i], "random_r2_median_sd": med_sd[i],
             "random_r2_p5_mean": p5_m[i], "random_r2_p95_mean": p95_m[i],
-            "random_r2_max_mean": max_m[i],
+            "random_r2_max_mean_test_selected_optimistic": max_m[i],
             "random_q2_nonpanel_median_mean": q2_m[i], "random_q2_nonpanel_median_sd": q2_sd[i],
             "gap_mean": gap_m[i], "gap_sd": gap_sd[i],
         }

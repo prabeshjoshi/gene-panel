@@ -56,6 +56,19 @@
       5
     ],
     "toy_n_pools": 20,
+    "ridge_alphas": [
+      0.01,
+      0.1,
+      1.0,
+      10.0,
+      100.0,
+      1000.0,
+      10000.0
+    ],
+    "ridge_cv_folds": 5,
+    "ridge_cv_panels_per_k": 10,
+    "rng_stream_panels": 1,
+    "rng_stream_alpha_cv": 2,
     "lowrank_q": [
       5,
       10,
@@ -64,6 +77,7 @@
       100
     ],
     "gate_lowrank_q": 20,
+    "gate_headroom_k": 20,
     "gate_lowrank_r2_at_20": 0.5,
     "gate_headroom_multiple_of_sd": 3
   },
@@ -89,10 +103,10 @@
     ]
   },
   "timings_s": {
-    "md5_check_s": 0.07111855199997308,
-    "parse_s": 6.180834481999966,
-    "write_s": 1.87500503199999,
-    "total_s": 10.820802256999968
+    "md5_check_s": 0.06220188700001472,
+    "parse_s": 2.963433941000062,
+    "write_s": 1.9970997199999374,
+    "total_s": 5.930840776999958
   },
   "manifest": {
     "source": {

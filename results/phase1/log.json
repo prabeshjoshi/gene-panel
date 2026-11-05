@@ -94,9 +94,9 @@
     "pandas": "3.1.1"
   },
   "timings_s": {
-    "alpha_cv_s": 3.7663242000000423,
-    "random_panels_s": 10.277720184000032,
-    "total_s": 15.60272630999998
+    "alpha_cv_s": 3.7864309719999483,
+    "random_panels_s": 10.501959031999945,
+    "total_s": 16.160784034000017
   },
   "ridge": {
     "alpha": 10.0,
@@ -553,7 +553,7 @@
       "random_r2_median_sd": 0.004795576838721613,
       "random_r2_p5_mean": 0.2249636889656405,
       "random_r2_p95_mean": 0.3600115325941783,
-      "random_r2_max_mean": 0.37610478262465996,
+      "random_r2_max_mean_test_selected_optimistic": 0.37610478262465996,
       "random_q2_nonpanel_median_mean": 0.3065672955830426,
       "random_q2_nonpanel_median_sd": 0.004800375029178927,
       "gap_mean": 0.1991037852373732,
@@ -566,7 +566,7 @@
       "random_r2_median_sd": 0.006845460358697525,
       "random_r2_p5_mean": 0.3633405877841946,
       "random_r2_p95_mean": 0.44350365866295177,
-      "random_r2_max_mean": 0.45620532065946195,
+      "random_r2_max_mean_test_selected_optimistic": 0.45620532065946195,
       "random_q2_nonpanel_median_mean": 0.40583071376922836,
       "random_q2_nonpanel_median_sd": 0.006729241545190501,
       "gap_mean": 0.19838554077194992,
@@ -579,7 +579,7 @@
       "random_r2_median_sd": 0.005350068334126465,
       "random_r2_p5_mean": 0.49177478297521465,
       "random_r2_p95_mean": 0.5381424892956469,
-      "random_r2_max_mean": 0.5480129967005998,
+      "random_r2_max_mean_test_selected_optimistic": 0.5480129967005998,
       "random_q2_nonpanel_median_mean": 0.5077116325068075,
       "random_q2_nonpanel_median_sd": 0.0053686685215437735,
       "gap_mean": 0.17683531297589616,
@@ -592,7 +592,7 @@
       "random_r2_median_sd": 0.004595491724150663,
       "random_r2_p5_mean": 0.6277116688937607,
       "random_r2_p95_mean": 0.6504496852905053,
-      "random_r2_max_mean": 0.6549771977108165,
+      "random_r2_max_mean_test_selected_optimistic": 0.6549771977108165,
       "random_q2_nonpanel_median_mean": 0.6197180613058213,
       "random_q2_nonpanel_median_sd": 0.004810808900387844,
       "gap_mean": 0.14190771271656996,
@@ -605,7 +605,7 @@
       "random_r2_median_sd": 0.0048410507394406515,
       "random_r2_p5_mean": 0.7035113851123641,
       "random_r2_p95_mean": 0.7187879673881412,
-      "random_r2_max_mean": 0.7230529111281574,
+      "random_r2_max_mean_test_selected_optimistic": 0.7230529111281574,
       "random_q2_nonpanel_median_mean": 0.6799896654305224,
       "random_q2_nonpanel_median_sd": 0.005448115943112798,
       "gap_mean": 0.12131454275668789,
