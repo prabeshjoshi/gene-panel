@@ -17,10 +17,14 @@ from __future__ import annotations
 import argparse
 import json
 import os
+
+# One BLAS thread per worker process (seeds run in parallel; see r2_compare.py).
+for _v in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
+    os.environ.setdefault(_v, "1")
 import platform
 import sys
 import time
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
 import numpy as np
@@ -121,8 +125,12 @@ def main() -> None:
     print(f"config_rerun.yaml commit {commit}; arms {rc['r3_arms']}; seeds {seeds}; workers {args.workers}")
 
     paths = (str(proc / "X_logcpm.parquet"), str(proc / "genes.csv"), str(proc / "splits.json"))
+    results = []
     with ProcessPoolExecutor(max_workers=args.workers, initializer=_init, initargs=(rc, *paths)) as ex:
-        results = list(ex.map(run_seed, seeds))
+        for fut in as_completed([ex.submit(run_seed, sd) for sd in seeds]):
+            results.append(fut.result())
+            print(f"  seed {results[-1]['seed']} done at {time.perf_counter() - t0:.0f}s", flush=True)
+    results.sort(key=lambda r: r["seed"])
 
     cases = pd.DataFrame([c for r in results for arm in r["toy"] for c in r["toy"][arm]])
     cases.to_csv(out_dir / "costs.csv", index=False)
