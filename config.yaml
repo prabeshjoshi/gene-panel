@@ -45,6 +45,17 @@ gate_lowrank_q: 20
 # --- phase 1 (headroom) ---
 gate_headroom_k: 20
 
+# --- phase 2 (heuristics); ridge alpha is read from results/phase1/log.json ---
+cluster_linkage: "complete"    # on 1 - |r|; "average" collapses to one ~936-gene cluster + outliers
+mtl_n_alphas: 100              # MultiTaskLasso alpha path length (log-spaced from alpha_max)
+mtl_alpha_min_ratio: 0.001     # smallest alpha on the path, as a fraction of alpha_max
+mtl_max_iter: 5000
+mtl_tol: 0.0001
+pls_vip_n_components: 20       # PLS2 latent variables for VIP
+pls_max_iter: 5000             # NIPALS iterations per component (sklearn default 500 did not converge)
+gate_heuristics_k: 20
+gate_noise_multiple_of_sd: 1   # "more than noise": mean paired diff > this x SD of paired diff
+
 # --- gates ---
 gate_lowrank_r2_at_20: 0.5
 gate_headroom_multiple_of_sd: 3
