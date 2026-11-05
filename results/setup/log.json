@@ -1,0 +1,223 @@
+{
+  "phase": "setup",
+  "config": {
+    "tissue": "Muscle - Skeletal",
+    "gct_url": "https://storage.googleapis.com/adult-gtex/bulk-gex/v10/rna-seq/counts-by-tissue/gene_reads_v10_muscle_skeletal.gct.gz",
+    "gct_file": "data/raw/gene_reads_v10_muscle_skeletal.gct.gz",
+    "gct_md5": "6c0293971115b9c67927b86048db7780",
+    "processed_dir": "data/processed",
+    "results_dir": "results",
+    "mt_prefix": "MT-",
+    "donor_keep_rule": "max_library_size",
+    "protein_coding_filter": false,
+    "qc_mad_threshold": 3.0,
+    "min_cpm": 1.0,
+    "min_frac_samples": 0.2,
+    "n_genes": 1000,
+    "test_frac": 0.2,
+    "seeds_gates": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "seeds_stability": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "k_random": [
+      5,
+      10,
+      20,
+      50,
+      100
+    ],
+    "n_random_panels": 100,
+    "k_heuristics": [
+      10,
+      20,
+      50
+    ],
+    "n_pc_targets": 20,
+    "toy_pool_size": 40,
+    "toy_k": [
+      2,
+      3,
+      4,
+      5
+    ],
+    "toy_n_pools": 20,
+    "lowrank_q": [
+      5,
+      10,
+      20,
+      50,
+      100
+    ],
+    "gate_lowrank_q": 20,
+    "gate_lowrank_r2_at_20": 0.5,
+    "gate_headroom_multiple_of_sd": 3
+  },
+  "seeds": {
+    "gates": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "stability": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  "timings_s": {
+    "md5_check_s": 0.07111855199997308,
+    "parse_s": 6.180834481999966,
+    "write_s": 1.87500503199999,
+    "total_s": 10.820802256999968
+  },
+  "manifest": {
+    "source": {
+      "file": "data/raw/gene_reads_v10_muscle_skeletal.gct.gz",
+      "md5": "6c0293971115b9c67927b86048db7780",
+      "url": "https://storage.googleapis.com/adult-gtex/bulk-gex/v10/rna-seq/counts-by-tissue/gene_reads_v10_muscle_skeletal.gct.gz"
+    },
+    "raw": {
+      "genes": 59033,
+      "samples": 818
+    },
+    "steps": [
+      {
+        "step": "donor_dedup",
+        "rule": "max_library_size",
+        "before": 818,
+        "after": 818,
+        "removed": 0,
+        "unit": "samples"
+      },
+      {
+        "step": "drop_mt",
+        "rule": "symbol startswith 'MT-'",
+        "before": 59033,
+        "after": 58996,
+        "removed": 37,
+        "unit": "genes"
+      },
+      {
+        "step": "drop_duplicate_symbols",
+        "rule": "keep higher mean CPM",
+        "before": 58996,
+        "after": 57816,
+        "removed": 1180,
+        "unit": "genes"
+      },
+      {
+        "step": "expression_filter",
+        "rule": "CPM>=1.0 in >=0.2 of samples",
+        "before": 57816,
+        "after": 14424,
+        "removed": 43392,
+        "unit": "genes"
+      }
+    ],
+    "donors": {
+      "n_donors_raw": 818,
+      "n_donors_with_multiple_samples": 0,
+      "multi_sample_donor_examples": {}
+    },
+    "protein_coding_filter": {
+      "applied": false,
+      "note": "skipped: no gene annotation was fetched for this pilot, so non-protein-coding genes (lncRNA, pseudogenes, etc.) remain in the gene set"
+    },
+    "qc": {
+      "rule": "|log10(lib) - median| > 3.0 * MAD (raw MAD); flagged, not dropped",
+      "n_flagged": 21
+    },
+    "splits": {
+      "seeds": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "test_frac": 0.2,
+      "rule": "round(test_frac * n_donors) test donors via default_rng(seed)"
+    },
+    "final": {
+      "samples": 818,
+      "genes": 14424
+    },
+    "thresholds": {
+      "mt_prefix": "MT-",
+      "donor_keep_rule": "max_library_size",
+      "min_cpm": 1.0,
+      "min_frac_samples": 0.2,
+      "test_frac": 0.2,
+      "qc_mad_threshold": 3.0
+    },
+    "versions": {
+      "python": "3.11.18",
+      "numpy": "2.4.6",
+      "pandas": "3.1.1"
+    }
+  },
+  "outputs": {
+    "X_logcpm": {
+      "path": "data/processed/X_logcpm.parquet",
+      "shape": [
+        818,
+        14424
+      ]
+    },
+    "genes": {
+      "path": "data/processed/genes.csv",
+      "rows": 59033
+    },
+    "samples": {
+      "path": "data/processed/samples.csv",
+      "rows": 818
+    },
+    "splits": {
+      "path": "data/processed/splits.json",
+      "seeds": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ]
+    },
+    "manifest": {
+      "path": "data/processed/manifest.json"
+    }
+  }
+}

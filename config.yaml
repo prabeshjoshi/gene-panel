@@ -1,0 +1,40 @@
+# gene-panel pilot. All thresholds and seeds live here; nothing is hard-coded.
+
+# --- data ---
+tissue: "Muscle - Skeletal"
+gct_url: "https://storage.googleapis.com/adult-gtex/bulk-gex/v10/rna-seq/counts-by-tissue/gene_reads_v10_muscle_skeletal.gct.gz"
+gct_file: "data/raw/gene_reads_v10_muscle_skeletal.gct.gz"
+gct_md5: "6c0293971115b9c67927b86048db7780"
+processed_dir: "data/processed"
+results_dir: "results"
+mt_prefix: "MT-"
+donor_keep_rule: "max_library_size"   # one sample per donor: keep the largest library (ties: sample id)
+protein_coding_filter: false          # no annotation fetched for this pilot (see manifest)
+qc_mad_threshold: 3.0                 # flag, never drop; on log10 library size, raw MAD
+
+# --- gene / sample filters and split ---
+min_cpm: 1.0
+min_frac_samples: 0.20
+n_genes: 1000
+test_frac: 0.20
+
+# --- seeds ---
+seeds_gates: [1, 2, 3, 4, 5]
+seeds_stability: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+# --- panels and evaluation (used from Phase 1 on) ---
+k_random: [5, 10, 20, 50, 100]
+n_random_panels: 100
+k_heuristics: [10, 20, 50]
+n_pc_targets: 20
+toy_pool_size: 40
+toy_k: [2, 3, 4, 5]
+toy_n_pools: 20
+
+# --- phase 0 (low rank) ---
+lowrank_q: [5, 10, 20, 50, 100]
+gate_lowrank_q: 20
+
+# --- gates ---
+gate_lowrank_r2_at_20: 0.5
+gate_headroom_multiple_of_sd: 3
