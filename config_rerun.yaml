@@ -1,0 +1,77 @@
+# Gene-panel rerun: pre-registered thresholds and decision rules.
+# Written and committed BEFORE any rerun analysis. Every rerun log records the commit hash of
+# this file. Thresholds are not changed after results are seen; a doubt goes to the user first.
+# Flat `key: value` format (parsed by panel.io.load_config).
+
+# ---------------------------------------------------------------- brief-given thresholds
+practical_r2_threshold: 0.01
+sd_multiple: 2
+stability_seeds_required: 8    # of 10
+k_values: [10, 20, 50]
+seeds: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+# ---------------------------------------------------------------- reused from the pilot
+pilot_config: "config.yaml"           # data paths, n_genes, gene filters, splits
+ridge_alpha: 10.0                     # fixed in pilot Phase 1 (5-fold CV, seed 1); not re-tuned
+n_genes: 1000
+results_dir: "results_rerun"
+
+# ---------------------------------------------------------------- R0: sex calls (decided before looking)
+sex_male_marker: "RPS4Y1"
+sex_female_marker: "XIST"
+sex_rule: "male if log2CPM(RPS4Y1) > log2CPM(XIST), else female"
+sex_ambiguous_log2cpm: 3.0            # ambiguous if BOTH markers < 3.0 (both low) or BOTH >= 3.0 (both high); log2(CPM+1)=3 is CPM 7
+sex_ambiguous_rule: "ambiguous samples are removed from every arm, train and test, all seeds"
+
+# ---------------------------------------------------------------- R0: arms
+arm_a_rule: "pilot pipeline: top n_genes by training variance of log2CPM, training mean/SD scaling"
+arm_b_rule: "per gene, OLS on [1, male] within training (= training group means); residualise train and test with training coefficients; then top n_genes by training residual variance and training mean/SD scaling"
+arm_c_rule: "Arm B genes split at random per seed into candidate and target blocks"
+arm_c_candidate_fraction: 0.5
+rng_stream_arm_c: 11                  # default_rng([seed, rng_stream_arm_c])
+sex_assoc_report_r: 0.5               # R0 report only: genes with training |r(gene, sex)| above this
+
+# ---------------------------------------------------------------- R1: methods
+n_random_panels: 100
+random_band_percentiles: [5, 95]
+rng_stream_panels: 1                  # default_rng([seed, k, stream]) as in the pilot
+n_pc_targets: 20
+cluster_linkage_primary: "complete"   # used for every decision
+cluster_linkage_report_only: "average"  # reported, never used for a decision
+mtl_n_alphas: 100
+mtl_alpha_min_ratio: 0.001
+mtl_max_iter: 5000
+mtl_tol: 0.0001
+pls_cv_folds: 5
+pls_max_lv: 20                        # LV search 1..min(pls_max_lv, n candidates); inner CV on training rows
+pls_max_iter: 5000
+pls_vip_once_n_components: 20         # reference method, as in the pilot
+pls_iter_drop_fraction: 0.10          # remove floor(0.10 x remaining) lowest-VIP candidates per round (at least 1)
+pls_iter_rule: "one elimination path from all candidates down to min(k_values); each removal is capped so the path stops exactly at every k in k_values (descending); LVs re-chosen by inner CV every round"
+arms_ab_pls_note: "Arms A/B: PLS2 candidates = targets = all genes; flagged degenerate"
+
+# ---------------------------------------------------------------- R2: comparison and stability
+ranking_methods: ["greedy", "pivoted_qr", "clustering", "multitask_lasso", "pls2_vip_iterative"]
+ranking_rule: "consensus = methods ordered by mean test R2 over seeds at k=20 (Arm C: target-block R2; Arms A/B: R2_all); a seed matches if its full order equals the consensus; the arm's ranking holds if matches >= stability_seeds_required"
+stability_k: 20
+soft_overlap_rule: "mean over the two panels of each gene's best |r| to the other panel; |r| on log2CPM of all included samples, sex-residualised with group means for Arms B and C; descriptive only"
+
+# ---------------------------------------------------------------- R3: exact-optimum check
+r3_arms: ["B", "C"]
+toy_pool_size: 40                     # Arm C: pools drawn from the candidate block; targets = target block
+toy_k: [2, 3, 4, 5]
+toy_n_pools: 20
+toy_seeds: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+toy_batch_size: 50000
+toy_validate_n: 50
+toy_validate_rtol: 1.0e-8
+rng_stream_toy_pool: 3
+rng_stream_toy_validate: 4
+r3_gate_k_min: 4
+r3_cost_rule: "per seed and k: mean over that seed's greedy misses of (optimum test R2 - greedy test R2); seeds with no miss at that k are left out and counted; then mean and SD over seeds"
+r3_noise_rule: "split-to-split SD = SD over seeds of greedy's mean test R2 over pools at that k"
+r3_gate_rule: "per arm: GO only if, at EVERY k >= r3_gate_k_min, mean cost >= practical_r2_threshold AND mean cost >= sd_multiple x split-to-split SD; the MILP direction continues only if at least one arm is GO"
+local_search_k: [20, 50]
+local_search_arms: ["B", "C"]
+local_search_max_iter: 500
+local_search_rule: "start from the greedy panel; each iteration try every swap of one panel gene for one non-panel candidate on the TRAINING OLS objective (Gram-matrix formula); accept the best strict improvement; stop when none improves or at max_iter; report training and test (ridge) gain"
