@@ -1,0 +1,539 @@
+{
+  "step": "R0",
+  "config_rerun_commit": "73ed984329b56276917d6f709ff538ef167366ab",
+  "config_rerun": {
+    "practical_r2_threshold": 0.01,
+    "sd_multiple": 2,
+    "stability_seeds_required": 8,
+    "k_values": [
+      10,
+      20,
+      50
+    ],
+    "seeds": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "pilot_config": "config.yaml",
+    "ridge_alpha": 10.0,
+    "n_genes": 1000,
+    "results_dir": "results_rerun",
+    "sex_male_marker": "RPS4Y1",
+    "sex_female_marker": "XIST",
+    "sex_rule": "male if log2CPM(RPS4Y1) > log2CPM(XIST), else female",
+    "sex_ambiguous_log2cpm": 3.0,
+    "sex_ambiguous_rule": "ambiguous samples are removed from every arm, train and test, all seeds",
+    "arm_a_rule": "pilot pipeline: top n_genes by training variance of log2CPM, training mean/SD scaling",
+    "arm_b_rule": "per gene, OLS on [1, male] within training (= training group means); residualise train and test with training coefficients; then top n_genes by training residual variance and training mean/SD scaling",
+    "arm_c_rule": "Arm B genes split at random per seed into candidate and target blocks",
+    "arm_c_candidate_fraction": 0.5,
+    "rng_stream_arm_c": 11,
+    "sex_assoc_report_r": 0.5,
+    "n_random_panels": 100,
+    "random_band_percentiles": [
+      5,
+      95
+    ],
+    "rng_stream_panels": 1,
+    "n_pc_targets": 20,
+    "cluster_linkage_primary": "complete",
+    "cluster_linkage_report_only": "average",
+    "mtl_n_alphas": 100,
+    "mtl_alpha_min_ratio": 0.001,
+    "mtl_max_iter": 5000,
+    "mtl_tol": 0.0001,
+    "pls_cv_folds": 5,
+    "pls_max_lv": 20,
+    "pls_max_iter": 5000,
+    "pls_vip_once_n_components": 20,
+    "pls_iter_drop_fraction": 0.1,
+    "pls_iter_rule": "one elimination path from all candidates down to min(k_values); each removal is capped so the path stops exactly at every k in k_values (descending); LVs re-chosen by inner CV every round",
+    "arms_ab_pls_note": "Arms A/B: PLS2 candidates = targets = all genes; flagged degenerate",
+    "ranking_methods": [
+      "greedy",
+      "pivoted_qr",
+      "clustering",
+      "multitask_lasso",
+      "pls2_vip_iterative"
+    ],
+    "ranking_rule": "consensus = methods ordered by mean test R2 over seeds at k=20 (Arm C: target-block R2; Arms A/B: R2_all); a seed matches if its full order equals the consensus; the arm's ranking holds if matches >= stability_seeds_required",
+    "stability_k": 20,
+    "soft_overlap_rule": "mean over the two panels of each gene's best |r| to the other panel; |r| on log2CPM of all included samples, sex-residualised with group means for Arms B and C; descriptive only",
+    "r3_arms": [
+      "B",
+      "C"
+    ],
+    "toy_pool_size": 40,
+    "toy_k": [
+      2,
+      3,
+      4,
+      5
+    ],
+    "toy_n_pools": 20,
+    "toy_seeds": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "toy_batch_size": 50000,
+    "toy_validate_n": 50,
+    "toy_validate_rtol": 1e-08,
+    "rng_stream_toy_pool": 3,
+    "rng_stream_toy_validate": 4,
+    "r3_gate_k_min": 4,
+    "r3_cost_rule": "per seed and k: mean over that seed's greedy misses of (optimum test R2 - greedy test R2); seeds with no miss at that k are left out and counted; then mean and SD over seeds",
+    "r3_noise_rule": "split-to-split SD = SD over seeds of greedy's mean test R2 over pools at that k",
+    "r3_gate_rule": "per arm: GO only if, at EVERY k >= r3_gate_k_min, mean cost >= practical_r2_threshold AND mean cost >= sd_multiple x split-to-split SD; the MILP direction continues only if at least one arm is GO",
+    "local_search_k": [
+      20,
+      50
+    ],
+    "local_search_arms": [
+      "B",
+      "C"
+    ],
+    "local_search_max_iter": 500,
+    "local_search_rule": "start from the greedy panel; each iteration try every swap of one panel gene for one non-panel candidate on the TRAINING OLS objective (Gram-matrix formula); accept the best strict improvement; stop when none improves or at max_iter; report training and test (ridge) gain"
+  },
+  "pilot_config": "config.yaml",
+  "versions": {
+    "python": "3.11.18",
+    "numpy": "2.4.6",
+    "pandas": "3.1.1"
+  },
+  "markers": {
+    "male": [
+      "RPS4Y1",
+      "ENSG00000129824"
+    ],
+    "female": [
+      "XIST",
+      "ENSG00000229807"
+    ]
+  },
+  "sex_calls": {
+    "n_samples": 818,
+    "male_all": 552,
+    "female_all": 266,
+    "ambiguous": 0,
+    "ambiguous_samples": {},
+    "included": 818,
+    "included_male": 552,
+    "included_female": 266,
+    "min_marker_margin_included": 3.13716197013855
+  },
+  "per_seed": {
+    "1": {
+      "n_train": 654,
+      "n_test": 164,
+      "excluded_from_train": 0,
+      "excluded_from_test": 0,
+      "male_train": 436,
+      "female_train": 218,
+      "male_test": 116,
+      "female_test": 48,
+      "arms": {
+        "A": {
+          "n_genes": 1000,
+          "n_candidates": 1000,
+          "n_targets": 1000,
+          "n_sex_associated_genes": 13
+        },
+        "B": {
+          "n_genes": 1000,
+          "n_candidates": 1000,
+          "n_targets": 1000,
+          "n_sex_associated_genes": 1
+        },
+        "C": {
+          "n_genes": 1000,
+          "n_candidates": 500,
+          "n_targets": 500,
+          "n_sex_associated_genes": 1
+        }
+      },
+      "genes_A_and_B": 985,
+      "n_sex_associated_in_universe": 21,
+      "arm_c_candidate_ids_head": [
+        "ENSG00000248746",
+        "ENSG00000173432",
+        "ENSG00000160808",
+        "ENSG00000124107",
+        "ENSG00000149968"
+      ]
+    },
+    "2": {
+      "n_train": 654,
+      "n_test": 164,
+      "excluded_from_train": 0,
+      "excluded_from_test": 0,
+      "male_train": 442,
+      "female_train": 212,
+      "male_test": 110,
+      "female_test": 54,
+      "arms": {
+        "A": {
+          "n_genes": 1000,
+          "n_candidates": 1000,
+          "n_targets": 1000,
+          "n_sex_associated_genes": 13
+        },
+        "B": {
+          "n_genes": 1000,
+          "n_candidates": 1000,
+          "n_targets": 1000,
+          "n_sex_associated_genes": 1
+        },
+        "C": {
+          "n_genes": 1000,
+          "n_candidates": 500,
+          "n_targets": 500,
+          "n_sex_associated_genes": 1
+        }
+      },
+      "genes_A_and_B": 985,
+      "n_sex_associated_in_universe": 21,
+      "arm_c_candidate_ids_head": [
+        "ENSG00000173432",
+        "ENSG00000124107",
+        "ENSG00000149968",
+        "ENSG00000196136",
+        "ENSG00000129170"
+      ]
+    },
+    "3": {
+      "n_train": 654,
+      "n_test": 164,
+      "excluded_from_train": 0,
+      "excluded_from_test": 0,
+      "male_train": 437,
+      "female_train": 217,
+      "male_test": 115,
+      "female_test": 49,
+      "arms": {
+        "A": {
+          "n_genes": 1000,
+          "n_candidates": 1000,
+          "n_targets": 1000,
+          "n_sex_associated_genes": 13
+        },
+        "B": {
+          "n_genes": 1000,
+          "n_candidates": 1000,
+          "n_targets": 1000,
+          "n_sex_associated_genes": 1
+        },
+        "C": {
+          "n_genes": 1000,
+          "n_candidates": 500,
+          "n_targets": 500,
+          "n_sex_associated_genes": 1
+        }
+      },
+      "genes_A_and_B": 987,
+      "n_sex_associated_in_universe": 20,
+      "arm_c_candidate_ids_head": [
+        "ENSG00000248746",
+        "ENSG00000149968",
+        "ENSG00000124107",
+        "ENSG00000134339",
+        "ENSG00000196136"
+      ]
+    },
+    "4": {
+      "n_train": 654,
+      "n_test": 164,
+      "excluded_from_train": 0,
+      "excluded_from_test": 0,
+      "male_train": 428,
+      "female_train": 226,
+      "male_test": 124,
+      "female_test": 40,
+      "arms": {
+        "A": {
+          "n_genes": 1000,
+          "n_candidates": 1000,
+          "n_targets": 1000,
+          "n_sex_associated_genes": 13
+        },
+        "B": {
+          "n_genes": 1000,
+          "n_candidates": 1000,
+          "n_targets": 1000,
+          "n_sex_associated_genes": 1
+        },
+        "C": {
+          "n_genes": 1000,
+          "n_candidates": 500,
+          "n_targets": 500,
+          "n_sex_associated_genes": 1
+        }
+      },
+      "genes_A_and_B": 984,
+      "n_sex_associated_in_universe": 21,
+      "arm_c_candidate_ids_head": [
+        "ENSG00000248746",
+        "ENSG00000160808",
+        "ENSG00000196136",
+        "ENSG00000149968",
+        "ENSG00000148677"
+      ]
+    },
+    "5": {
+      "n_train": 654,
+      "n_test": 164,
+      "excluded_from_train": 0,
+      "excluded_from_test": 0,
+      "male_train": 444,
+      "female_train": 210,
+      "male_test": 108,
+      "female_test": 56,
+      "arms": {
+        "A": {
+          "n_genes": 1000,
+          "n_candidates": 1000,
+          "n_targets": 1000,
+          "n_sex_associated_genes": 13
+        },
+        "B": {
+          "n_genes": 1000,
+          "n_candidates": 1000,
+          "n_targets": 1000,
+          "n_sex_associated_genes": 1
+        },
+        "C": {
+          "n_genes": 1000,
+          "n_candidates": 500,
+          "n_targets": 500,
+          "n_sex_associated_genes": 1
+        }
+      },
+      "genes_A_and_B": 984,
+      "n_sex_associated_in_universe": 20,
+      "arm_c_candidate_ids_head": [
+        "ENSG00000173432",
+        "ENSG00000160808",
+        "ENSG00000196136",
+        "ENSG00000109061",
+        "ENSG00000128965"
+      ]
+    },
+    "6": {
+      "n_train": 654,
+      "n_test": 164,
+      "excluded_from_train": 0,
+      "excluded_from_test": 0,
+      "male_train": 436,
+      "female_train": 218,
+      "male_test": 116,
+      "female_test": 48,
+      "arms": {
+        "A": {
+          "n_genes": 1000,
+          "n_candidates": 1000,
+          "n_targets": 1000,
+          "n_sex_associated_genes": 13
+        },
+        "B": {
+          "n_genes": 1000,
+          "n_candidates": 1000,
+          "n_targets": 1000,
+          "n_sex_associated_genes": 1
+        },
+        "C": {
+          "n_genes": 1000,
+          "n_candidates": 500,
+          "n_targets": 500,
+          "n_sex_associated_genes": 1
+        }
+      },
+      "genes_A_and_B": 985,
+      "n_sex_associated_in_universe": 21,
+      "arm_c_candidate_ids_head": [
+        "ENSG00000248746",
+        "ENSG00000149968",
+        "ENSG00000288777",
+        "ENSG00000109061",
+        "ENSG00000004799"
+      ]
+    },
+    "7": {
+      "n_train": 654,
+      "n_test": 164,
+      "excluded_from_train": 0,
+      "excluded_from_test": 0,
+      "male_train": 438,
+      "female_train": 216,
+      "male_test": 114,
+      "female_test": 50,
+      "arms": {
+        "A": {
+          "n_genes": 1000,
+          "n_candidates": 1000,
+          "n_targets": 1000,
+          "n_sex_associated_genes": 13
+        },
+        "B": {
+          "n_genes": 1000,
+          "n_candidates": 1000,
+          "n_targets": 1000,
+          "n_sex_associated_genes": 1
+        },
+        "C": {
+          "n_genes": 1000,
+          "n_candidates": 500,
+          "n_targets": 500,
+          "n_sex_associated_genes": 1
+        }
+      },
+      "genes_A_and_B": 985,
+      "n_sex_associated_in_universe": 21,
+      "arm_c_candidate_ids_head": [
+        "ENSG00000248746",
+        "ENSG00000196136",
+        "ENSG00000134339",
+        "ENSG00000109061",
+        "ENSG00000128965"
+      ]
+    },
+    "8": {
+      "n_train": 654,
+      "n_test": 164,
+      "excluded_from_train": 0,
+      "excluded_from_test": 0,
+      "male_train": 445,
+      "female_train": 209,
+      "male_test": 107,
+      "female_test": 57,
+      "arms": {
+        "A": {
+          "n_genes": 1000,
+          "n_candidates": 1000,
+          "n_targets": 1000,
+          "n_sex_associated_genes": 13
+        },
+        "B": {
+          "n_genes": 1000,
+          "n_candidates": 1000,
+          "n_targets": 1000,
+          "n_sex_associated_genes": 1
+        },
+        "C": {
+          "n_genes": 1000,
+          "n_candidates": 500,
+          "n_targets": 500,
+          "n_sex_associated_genes": 1
+        }
+      },
+      "genes_A_and_B": 986,
+      "n_sex_associated_in_universe": 21,
+      "arm_c_candidate_ids_head": [
+        "ENSG00000134339",
+        "ENSG00000288777",
+        "ENSG00000236882",
+        "ENSG00000225972",
+        "ENSG00000134184"
+      ]
+    },
+    "9": {
+      "n_train": 654,
+      "n_test": 164,
+      "excluded_from_train": 0,
+      "excluded_from_test": 0,
+      "male_train": 432,
+      "female_train": 222,
+      "male_test": 120,
+      "female_test": 44,
+      "arms": {
+        "A": {
+          "n_genes": 1000,
+          "n_candidates": 1000,
+          "n_targets": 1000,
+          "n_sex_associated_genes": 13
+        },
+        "B": {
+          "n_genes": 1000,
+          "n_candidates": 1000,
+          "n_targets": 1000,
+          "n_sex_associated_genes": 1
+        },
+        "C": {
+          "n_genes": 1000,
+          "n_candidates": 500,
+          "n_targets": 500,
+          "n_sex_associated_genes": 1
+        }
+      },
+      "genes_A_and_B": 985,
+      "n_sex_associated_in_universe": 21,
+      "arm_c_candidate_ids_head": [
+        "ENSG00000248746",
+        "ENSG00000148677",
+        "ENSG00000129170",
+        "ENSG00000109061",
+        "ENSG00000004799"
+      ]
+    },
+    "10": {
+      "n_train": 654,
+      "n_test": 164,
+      "excluded_from_train": 0,
+      "excluded_from_test": 0,
+      "male_train": 447,
+      "female_train": 207,
+      "male_test": 105,
+      "female_test": 59,
+      "arms": {
+        "A": {
+          "n_genes": 1000,
+          "n_candidates": 1000,
+          "n_targets": 1000,
+          "n_sex_associated_genes": 12
+        },
+        "B": {
+          "n_genes": 1000,
+          "n_candidates": 1000,
+          "n_targets": 1000,
+          "n_sex_associated_genes": 0
+        },
+        "C": {
+          "n_genes": 1000,
+          "n_candidates": 500,
+          "n_targets": 500,
+          "n_sex_associated_genes": 0
+        }
+      },
+      "genes_A_and_B": 984,
+      "n_sex_associated_in_universe": 19,
+      "arm_c_candidate_ids_head": [
+        "ENSG00000248746",
+        "ENSG00000173432",
+        "ENSG00000149968",
+        "ENSG00000288777",
+        "ENSG00000109061"
+      ]
+    }
+  },
+  "outputs": {
+    "sex_calls": "data/processed/sex_calls.csv (not committed)"
+  },
+  "timings_s": {
+    "total_s": 144.448701497
+  }
+}
