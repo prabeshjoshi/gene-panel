@@ -61,6 +61,56 @@ def score_panel(Z_train: np.ndarray, Z_test: np.ndarray, panel, alpha: float) ->
     return {"r2_all": r2_all(Z_test, Zhat), "q2_nonpanel": r2_subset(Z_test, Zhat, nonpanel)}
 
 
+def _pls_fit(Z_panel: np.ndarray, Z_all: np.ndarray, n_lv: int, max_iter: int):
+    """PLS2 (no rescaling) from panel genes to all genes; returns (rotations R, Y loadings Q).
+
+    Inputs must be centred, so the prediction with the first a LVs is X R[:, :a] Q[:, :a]'.
+    PLS components are built one after another, so truncating a fit to a < n_lv components
+    gives the same model as fitting a components.
+    """
+    import warnings
+
+    from sklearn.cross_decomposition import PLSRegression
+    from sklearn.exceptions import ConvergenceWarning
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", ConvergenceWarning)
+        pls = PLSRegression(n_components=n_lv, scale=False, max_iter=max_iter).fit(Z_panel, Z_all)
+    return pls.x_rotations_, pls.y_loadings_
+
+
+def pls_cv_n_lv(Z_train: np.ndarray, panel, max_lv: int, n_folds: int, seed: int,
+                max_iter: int):
+    """Choose the number of PLS2 latent variables by K-fold CV on training rows only.
+
+    Each fold is re-standardised with its own fold-training statistics. Score = pooled CV
+    R2_all. Returns (best n_lv, {n_lv: CV R2_all}).
+    """
+    max_lv = min(int(max_lv), len(panel))
+    kf = KFold(n_splits=n_folds, shuffle=True, random_state=seed)
+    sse = np.zeros(max_lv)
+    ss = 0.0
+    for tr, va in kf.split(Z_train):
+        std = Standardizer.fit(Z_train[tr])
+        Ztr, Zva = std.transform(Z_train[tr]), std.transform(Z_train[va])
+        R, Q = _pls_fit(Ztr[:, panel], Ztr, max_lv, max_iter)
+        scores = Zva[:, panel] @ R
+        ss += (Zva ** 2).sum()
+        for a in range(1, max_lv + 1):
+            sse[a - 1] += ((Zva - scores[:, :a] @ Q[:, :a].T) ** 2).sum()
+    cv = 1.0 - sse / ss
+    return int(np.argmax(cv)) + 1, {a + 1: float(v) for a, v in enumerate(cv)}
+
+
+def score_panel_pls(Z_train: np.ndarray, Z_test: np.ndarray, panel, n_lv: int,
+                    max_iter: int) -> dict:
+    """Like score_panel, with PLS2 (n_lv latent variables) instead of ridge."""
+    R, Q = _pls_fit(Z_train[:, panel], Z_train, n_lv, max_iter)
+    Zhat = Z_test[:, panel] @ R @ Q.T
+    nonpanel = np.setdiff1d(np.arange(Z_test.shape[1]), panel)
+    return {"r2_all": r2_all(Z_test, Zhat), "q2_nonpanel": r2_subset(Z_test, Zhat, nonpanel)}
+
+
 def cv_ridge_alpha(Z_train: np.ndarray, panels, alphas, n_folds: int, seed: int):
     """Choose one ridge alpha by K-fold CV on training rows only.
 

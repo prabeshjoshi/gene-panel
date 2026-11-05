@@ -38,53 +38,8 @@ from panel import io as pio  # noqa: E402
 from panel import plots  # noqa: E402
 from panel import select as sel  # noqa: E402
 
-METHODS = ["greedy", "leverage", "cluster", "mtl", "pls_vip"]
-
-
-def select_panels(Ztr: np.ndarray, ks: list[int], cfg: dict) -> tuple[dict, dict, dict]:
-    """All heuristic panels for one training matrix. Returns (panels, info, seconds)."""
-    panels: dict = {m: {} for m in METHODS}
-    info: dict = {m: {} for m in METHODS}
-    secs: dict = {}
-
-    t = time.perf_counter()
-    order, r2_path = sel.greedy_forward(Ztr, max(ks))
-    for k in ks:
-        panels["greedy"][k] = order[:k]
-        info["greedy"][k] = {"train_ols_r2_all": float(r2_path[k - 1])}
-    secs["greedy"] = time.perf_counter() - t
-
-    t = time.perf_counter()
-    for k in ks:
-        panels["leverage"][k] = sel.leverage_panel(Ztr, k)
-    secs["leverage"] = time.perf_counter() - t
-
-    t = time.perf_counter()
-    for k, (genes, n_clusters) in sel.cluster_medoid_panels(Ztr, ks, cfg["cluster_linkage"]).items():
-        panels["cluster"][k] = genes
-        info["cluster"][k] = {"n_clusters": n_clusters}
-    secs["cluster"] = time.perf_counter() - t
-
-    T = sel.pc_targets(Ztr, int(cfg["n_pc_targets"]))
-
-    t = time.perf_counter()
-    mtl = sel.mtl_panels(Ztr, T, ks, int(cfg["mtl_n_alphas"]), float(cfg["mtl_alpha_min_ratio"]),
-                         int(cfg["mtl_max_iter"]), float(cfg["mtl_tol"]))
-    for k, (genes, meta) in mtl.items():
-        panels["mtl"][k] = genes
-        info["mtl"][k] = meta
-    secs["mtl"] = time.perf_counter() - t
-
-    t = time.perf_counter()
-    vip = sel.pls_vip(Ztr, T, int(cfg["pls_vip_n_components"]), int(cfg["pls_max_iter"]))
-    for k in ks:
-        panels["pls_vip"][k] = sel.top_k(vip, k)
-    secs["pls_vip"] = time.perf_counter() - t
-
-    for m in METHODS:
-        for k in ks:
-            assert len(set(panels[m][k].tolist())) == len(panels[m][k]), f"{m} k={k} repeats"
-    return panels, info, secs
+METHODS = sel.HEURISTICS
+select_panels = sel.heuristic_panels
 
 
 def paired(a: np.ndarray, b: np.ndarray) -> tuple[float, float]:

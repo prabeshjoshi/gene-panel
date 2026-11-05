@@ -69,6 +69,12 @@ gate_toy_k_min: 4              # gate looks at k >= this
 gate_toy_miss_share: 0.2       # "real share": greedy misses the optimum in >= this share of pools
 gate_toy_cost_multiple_of_se: 2  # mean test cost of misses > this x bootstrap SE
 
+# --- phase 4 (stability over seeds_stability) ---
+stability_k: 20
+gate_stability_share: 0.5      # "most seeds": per-seed ranking equals consensus in MORE than this share
+pls_eval_top_methods: 2        # optional ridge -> PLS2 swap for the top consensus methods
+pls_eval_max_lv: 20            # LVs searched by inner CV (capped at panel size)
+
 # --- gates ---
 gate_lowrank_r2_at_20: 0.5
 gate_headroom_multiple_of_sd: 3

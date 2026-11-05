@@ -47,6 +47,33 @@ METHOD_COLORS = {"greedy": "#D55E00", "leverage": "#0072B2", "cluster": "#009E73
                  "mtl": "#CC79A7", "pls_vip": "#E69F00"}
 
 
+def plot_stability(seeds, r2_by_method: dict, rand_median, jaccard: dict, soft: dict, out_path,
+                   title=""):
+    """Left: test R2_all per seed for each method. Right: panel overlap across seeds."""
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(10.5, 4.2), gridspec_kw={"width_ratios": [1.4, 1]})
+    x = np.arange(len(seeds))
+    a1.plot(x, rand_median, color="#4d4d4d", marker="o", ms=3, ls="--", label="random median")
+    for m, vals in r2_by_method.items():
+        a1.plot(x, vals, marker="o", ms=4, color=METHOD_COLORS.get(m), label=m)
+    a1.set_xticks(x)
+    a1.set_xticklabels([str(s) for s in seeds])
+    a1.set_xlabel("seed (train/test split)")
+    a1.set_ylabel("test R2_all")
+    a1.legend(fontsize=8, ncol=2, loc="lower right")
+    names = list(jaccard)
+    xb = np.arange(len(names))
+    a2.bar(xb - 0.2, [jaccard[n] for n in names], width=0.4, color="#1f4e79", label="Jaccard (same genes)")
+    a2.bar(xb + 0.2, [soft[n] for n in names], width=0.4, color="#9ecae1",
+           label="soft overlap (best |r| stand-in)")
+    a2.set_xticks(xb)
+    a2.set_xticklabels(names, rotation=30, ha="right")
+    a2.set_ylim(0, 1)
+    a2.set_ylabel("mean over seed pairs")
+    a2.legend(fontsize=8, loc="upper right")
+    fig.suptitle(title, fontsize=11)
+    return _save(fig, out_path)
+
+
 def plot_toy(ks, greedy_hit_by_seed: dict, other_hit: dict, misses, out_path, title=""):
     """Left: share of pools where each method finds the exact optimum, by k.
     Right: for every greedy miss, training-R2 gap vs test-R2 cost (optimum minus greedy)."""

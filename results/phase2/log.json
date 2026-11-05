@@ -87,6 +87,21 @@
     "pls_max_iter": 5000,
     "gate_heuristics_k": 20,
     "gate_noise_multiple_of_sd": 1,
+    "toy_seeds": [
+      1,
+      2,
+      3
+    ],
+    "toy_batch_size": 50000,
+    "toy_validate_n": 50,
+    "toy_validate_rtol": 1e-08,
+    "toy_n_boot": 1000,
+    "rng_stream_toy_pool": 3,
+    "rng_stream_toy_validate": 4,
+    "rng_stream_toy_boot": 5,
+    "gate_toy_k_min": 4,
+    "gate_toy_miss_share": 0.2,
+    "gate_toy_cost_multiple_of_se": 2,
     "gate_lowrank_r2_at_20": 0.5,
     "gate_headroom_multiple_of_sd": 3
   },
@@ -104,13 +119,13 @@
   },
   "timings_s": {
     "selection_by_method_total": {
-      "greedy": 1.53552068099998,
-      "leverage": 3.005472585000234,
-      "cluster": 0.21161585999993804,
-      "mtl": 17.710503889000393,
-      "pls_vip": 1.7456343139997443
+      "greedy": 1.5573133040002176,
+      "leverage": 2.974471456000174,
+      "cluster": 0.22094109799991202,
+      "mtl": 18.011814182999842,
+      "pls_vip": 1.7711608289998821
     },
-    "total_s": 33.964924353000015
+    "total_s": 34.66384551800002
   },
   "ridge_alpha": 10.0,
   "per_seed": {

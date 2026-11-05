@@ -20,6 +20,7 @@ python scripts/01_lowrank.py   # Phase 0                           -> results/ph
 python scripts/02_headroom.py  # Phase 1                           -> results/phase1/
 python scripts/03_heuristics.py # Phase 2                          -> results/phase2/
 python scripts/04_toy_exact.py  # Phase 3                          -> results/phase3/
+python scripts/05_stability.py  # Phase 4                          -> results/phase4/
 ```
 
 Data is never committed. Every run writes `results/<phase>/log.json` (config, seeds, timings,
@@ -52,6 +53,7 @@ and fit no model.
 | 1 headroom | (ceiling - random median) at k = 20 >= 3 x SD across seeds | 0.177 vs SD 0.0054 (33x) | GO |
 | 2 heuristics | at k = 20, best beats random median AND >= 1 method pair differs, beyond paired SD | greedy +0.080 (SD 0.005); 10/10 pairs differ | GO |
 | 3 toy exact | k >= 4: greedy misses the optimum in >= 20% of pools AND mean test cost of misses > 2 x bootstrap SE, on seeds 1-3 | misses 72-85%; cost +0.005 to +0.009 R2 (2.6-4.1 x SE) | GO |
+| 4 stability | k = 20 over 10 seeds: per-seed ranking equals consensus in more than half of seeds | 9/10 (only mtl/pls_vip swap once) | GO |
 
 Phase 2, test R2_all at k = 20 (random median 0.518, ceiling 0.694): greedy 0.597, clustering
 (complete linkage) 0.562, MultiTaskLasso 0.529, PLS2-VIP 0.506, leverage 0.323. Leverage is far
@@ -65,6 +67,13 @@ is still near the top (median rank 2-19 of up to 658,008 subsets) and the test c
 (about 0.005-0.009 R2, roughly the size of the seed-to-seed noise in Phase 2). In 5-12 of ~30
 misses per seed the greedy panel is better on test. Leverage never and clustering rarely hit the
 optimum.
+
+Phase 4 (k = 20, seeds 1-10): greedy > clustering > MultiTaskLasso > PLS2-VIP > leverage
+(0.595, 0.559, 0.526, 0.492, 0.316; random median 0.513). Greedy is first and clustering second in
+every seed. Panel stability runs opposite to performance: leverage and PLS2-VIP pick nearly the
+same genes every seed (Jaccard 0.86-0.89) but predict worst; greedy (0.28) and clustering (0.08)
+change genes between seeds, but swap in correlated stand-ins (soft overlap 0.81 and 0.73 vs 0.55
+for random). Swapping ridge for PLS2 changes nothing: inner CV picks all 20 LVs (= OLS).
 
 Data after filtering: 818 samples (one per donor) x 14,424 genes; 654 train / 164 test per seed;
 top 1000 genes by training variance per split. Ridge alpha = 10 (5-fold CV, seed 1 training data).

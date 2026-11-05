@@ -192,6 +192,61 @@ def top_k(scores: np.ndarray, k: int) -> np.ndarray:
     return np.argsort(-scores, kind="stable")[:k]
 
 
+HEURISTICS = ["greedy", "leverage", "cluster", "mtl", "pls_vip"]
+
+
+def heuristic_panels(Ztr: np.ndarray, ks, cfg: dict) -> tuple[dict, dict, dict]:
+    """All five heuristic panels for one training matrix (Phases 2 and 4).
+
+    Returns (panels {method: {k: gene indices}}, info {method: {k: dict}}, seconds {method}).
+    """
+    import time
+
+    ks = [int(k) for k in ks]
+    panels: dict = {m: {} for m in HEURISTICS}
+    info: dict = {m: {} for m in HEURISTICS}
+    secs: dict = {}
+
+    t = time.perf_counter()
+    order, r2_path = greedy_forward(Ztr, max(ks))
+    for k in ks:
+        panels["greedy"][k] = order[:k]
+        info["greedy"][k] = {"train_ols_r2_all": float(r2_path[k - 1])}
+    secs["greedy"] = time.perf_counter() - t
+
+    t = time.perf_counter()
+    for k in ks:
+        panels["leverage"][k] = leverage_panel(Ztr, k)
+    secs["leverage"] = time.perf_counter() - t
+
+    t = time.perf_counter()
+    for k, (genes, n_clusters) in cluster_medoid_panels(Ztr, ks, cfg["cluster_linkage"]).items():
+        panels["cluster"][k] = genes
+        info["cluster"][k] = {"n_clusters": n_clusters}
+    secs["cluster"] = time.perf_counter() - t
+
+    T = pc_targets(Ztr, int(cfg["n_pc_targets"]))
+
+    t = time.perf_counter()
+    mtl = mtl_panels(Ztr, T, ks, int(cfg["mtl_n_alphas"]), float(cfg["mtl_alpha_min_ratio"]),
+                     int(cfg["mtl_max_iter"]), float(cfg["mtl_tol"]))
+    for k, (genes, meta) in mtl.items():
+        panels["mtl"][k] = genes
+        info["mtl"][k] = meta
+    secs["mtl"] = time.perf_counter() - t
+
+    t = time.perf_counter()
+    vip = pls_vip(Ztr, T, int(cfg["pls_vip_n_components"]), int(cfg["pls_max_iter"]))
+    for k in ks:
+        panels["pls_vip"][k] = top_k(vip, k)
+    secs["pls_vip"] = time.perf_counter() - t
+
+    for m in HEURISTICS:
+        for k in ks:
+            assert len(set(panels[m][k].tolist())) == len(panels[m][k]), f"{m} k={k} repeats"
+    return panels, info, secs
+
+
 # --------------------------------------------------------------------------------------
 # Phase 3: exact optimum on a small candidate pool. Targets are always ALL genes.
 # --------------------------------------------------------------------------------------
