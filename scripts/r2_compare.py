@@ -14,10 +14,15 @@ from __future__ import annotations
 import argparse
 import json
 import os
+
+# One BLAS thread per worker process: seeds run in parallel, so multithreaded BLAS in every
+# worker oversubscribes the cores (the first full run stalled past 30 minutes this way).
+for _v in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
+    os.environ.setdefault(_v, "1")
 import platform
 import sys
 import time
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from itertools import combinations
 from pathlib import Path
 
@@ -145,6 +150,7 @@ def soft_overlap(a, b, C: pd.DataFrame) -> float:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--workers", type=int, default=min(4, os.cpu_count() or 1))
+    ap.add_argument("--seeds", type=int, nargs="*", help="timing probe only: run these seeds")
     args = ap.parse_args()
     t0 = time.perf_counter()
     rpath = ROOT / "config_rerun.yaml"
@@ -156,16 +162,28 @@ def main() -> None:
     out_dir = out_root / "r2"
     out_dir.mkdir(parents=True, exist_ok=True)
     seeds = [int(s) for s in rc["seeds"]]
+    if args.seeds:  # timing probe: run the seeds, print timings, write nothing
+        _init(rc, str(proc / "X_logcpm.parquet"), str(proc / "genes.csv"), str(proc / "splits.json"))
+        for s in args.seeds:
+            t = time.perf_counter()
+            r = run_seed(s)
+            print(f"probe seed {s}: {time.perf_counter() - t:.0f}s " + str({a: round(v['total']) for a, v in r['secs'].items()}))
+        return
     ks = [int(k) for k in rc["k_values"]]
     kstab = int(rc["stability_k"])
     print(f"config_rerun.yaml commit {commit}; seeds {seeds}; k {ks}; workers {args.workers}")
 
     paths = (str(proc / "X_logcpm.parquet"), str(proc / "genes.csv"), str(proc / "splits.json"))
+    results = []
     with ProcessPoolExecutor(max_workers=args.workers, initializer=_init, initargs=(rc, *paths)) as ex:
-        results = list(ex.map(run_seed, seeds))
+        futs = [ex.submit(run_seed, s) for s in seeds]
+        for fut in as_completed(futs):
+            r = fut.result()
+            results.append(r)
+            print(f"  seed {r['seed']} done at {time.perf_counter() - t0:.0f}s: "
+                  + ", ".join(f"{a} {v['total']:.0f}s" for a, v in r["secs"].items()), flush=True)
+    results.sort(key=lambda r: r["seed"])
     t_run = time.perf_counter() - t0
-    for r in results:
-        print(f"  seed {r['seed']}: " + ", ".join(f"{a} {v['total']:.0f}s" for a, v in r["secs"].items()))
 
     df = pd.DataFrame([row for r in results for row in r["rows"]])
     df.to_csv(out_root / "comparison.csv", index=False)
