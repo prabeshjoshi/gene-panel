@@ -1,0 +1,801 @@
+{
+  "step": "R3",
+  "config_rerun_commit": "73ed984329b56276917d6f709ff538ef167366ab",
+  "config_rerun": {
+    "practical_r2_threshold": 0.01,
+    "sd_multiple": 2,
+    "stability_seeds_required": 8,
+    "k_values": [
+      10,
+      20,
+      50
+    ],
+    "seeds": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "pilot_config": "config.yaml",
+    "ridge_alpha": 10.0,
+    "n_genes": 1000,
+    "results_dir": "results_rerun",
+    "sex_male_marker": "RPS4Y1",
+    "sex_female_marker": "XIST",
+    "sex_rule": "male if log2CPM(RPS4Y1) > log2CPM(XIST), else female",
+    "sex_ambiguous_log2cpm": 3.0,
+    "sex_ambiguous_rule": "ambiguous samples are removed from every arm, train and test, all seeds",
+    "arm_a_rule": "pilot pipeline: top n_genes by training variance of log2CPM, training mean/SD scaling",
+    "arm_b_rule": "per gene, OLS on [1, male] within training (= training group means); residualise train and test with training coefficients; then top n_genes by training residual variance and training mean/SD scaling",
+    "arm_c_rule": "Arm B genes split at random per seed into candidate and target blocks",
+    "arm_c_candidate_fraction": 0.5,
+    "rng_stream_arm_c": 11,
+    "sex_assoc_report_r": 0.5,
+    "n_random_panels": 100,
+    "random_band_percentiles": [
+      5,
+      95
+    ],
+    "rng_stream_panels": 1,
+    "n_pc_targets": 20,
+    "cluster_linkage_primary": "complete",
+    "cluster_linkage_report_only": "average",
+    "mtl_n_alphas": 100,
+    "mtl_alpha_min_ratio": 0.001,
+    "mtl_max_iter": 5000,
+    "mtl_tol": 0.0001,
+    "pls_cv_folds": 5,
+    "pls_max_lv": 20,
+    "pls_max_iter": 5000,
+    "pls_vip_once_n_components": 20,
+    "pls_iter_drop_fraction": 0.1,
+    "pls_iter_rule": "one elimination path from all candidates down to min(k_values); each removal is capped so the path stops exactly at every k in k_values (descending); LVs re-chosen by inner CV every round",
+    "arms_ab_pls_note": "Arms A/B: PLS2 candidates = targets = all genes; flagged degenerate",
+    "ranking_methods": [
+      "greedy",
+      "pivoted_qr",
+      "clustering",
+      "multitask_lasso",
+      "pls2_vip_iterative"
+    ],
+    "ranking_rule": "consensus = methods ordered by mean test R2 over seeds at k=20 (Arm C: target-block R2; Arms A/B: R2_all); a seed matches if its full order equals the consensus; the arm's ranking holds if matches >= stability_seeds_required",
+    "stability_k": 20,
+    "soft_overlap_rule": "mean over the two panels of each gene's best |r| to the other panel; |r| on log2CPM of all included samples, sex-residualised with group means for Arms B and C; descriptive only",
+    "r3_arms": [
+      "B",
+      "C"
+    ],
+    "toy_pool_size": 40,
+    "toy_k": [
+      2,
+      3,
+      4,
+      5
+    ],
+    "toy_n_pools": 20,
+    "toy_seeds": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "toy_batch_size": 50000,
+    "toy_validate_n": 50,
+    "toy_validate_rtol": 1e-08,
+    "rng_stream_toy_pool": 3,
+    "rng_stream_toy_validate": 4,
+    "r3_gate_k_min": 4,
+    "r3_cost_rule": "per seed and k: mean over that seed's greedy misses of (optimum test R2 - greedy test R2); seeds with no miss at that k are left out and counted; then mean and SD over seeds",
+    "r3_noise_rule": "split-to-split SD = SD over seeds of greedy's mean test R2 over pools at that k",
+    "r3_gate_rule": "per arm: GO only if, at EVERY k >= r3_gate_k_min, mean cost >= practical_r2_threshold AND mean cost >= sd_multiple x split-to-split SD; the MILP direction continues only if at least one arm is GO",
+    "local_search_k": [
+      20,
+      50
+    ],
+    "local_search_arms": [
+      "B",
+      "C"
+    ],
+    "local_search_max_iter": 500,
+    "local_search_rule": "start from the greedy panel; each iteration try every swap of one panel gene for one non-panel candidate on the TRAINING OLS objective (Gram-matrix formula); accept the best strict improvement; stop when none improves or at max_iter; report training and test (ridge) gain"
+  },
+  "versions": {
+    "python": "3.11.18",
+    "numpy": "2.4.6",
+    "pandas": "3.1.1"
+  },
+  "workers": 4,
+  "timings_s": {
+    "total": 171.13069327899984
+  },
+  "objective_validation": {
+    "1": {
+      "B": 4.678533259220363e-16,
+      "C": 7.300927033841965e-16
+    },
+    "2": {
+      "B": 2.688763473820011e-16,
+      "C": 8.96486175938663e-16
+    },
+    "3": {
+      "B": 6.319512376836189e-16,
+      "C": 4.4997436398561145e-16
+    },
+    "4": {
+      "B": 1.061910280858055e-15,
+      "C": 1.393707177825633e-15
+    },
+    "5": {
+      "B": 5.692165690341758e-16,
+      "C": 7.960365389609541e-16
+    },
+    "6": {
+      "B": 5.108904540453832e-16,
+      "C": 4.2969820618645848e-16
+    },
+    "7": {
+      "B": 5.338879916333763e-16,
+      "C": 3.9916836769740143e-16
+    },
+    "8": {
+      "B": 5.54973729267923e-16,
+      "C": 3.851549198799599e-16
+    },
+    "9": {
+      "B": 8.029220856444292e-16,
+      "C": 1.0818036064938319e-15
+    },
+    "10": {
+      "B": 8.936323131240983e-16,
+      "C": 1.3606213832581233e-15
+    }
+  },
+  "per_k": {
+    "B": {
+      "2": {
+        "miss_rate": 0.22999999999999998,
+        "n_cases": 200,
+        "n_misses": 46,
+        "cost_mean": 0.005614565744227389,
+        "cost_sd": 0.008098616588049305,
+        "seeds_without_miss": 0,
+        "share_misses_greedy_better": 0.30434782608695654,
+        "greedy_test_r2_mean": 0.29609181669789325,
+        "split_sd": 0.008032288715459066
+      },
+      "3": {
+        "miss_rate": 0.55,
+        "n_cases": 200,
+        "n_misses": 110,
+        "cost_mean": 0.003409783521646042,
+        "cost_sd": 0.003045072326838337,
+        "seeds_without_miss": 0,
+        "share_misses_greedy_better": 0.39090909090909093,
+        "greedy_test_r2_mean": 0.33915504552690023,
+        "split_sd": 0.0078079313390630985
+      },
+      "4": {
+        "miss_rate": 0.69,
+        "n_cases": 200,
+        "n_misses": 138,
+        "cost_mean": 0.00405230201719814,
+        "cost_sd": 0.00255534633293313,
+        "seeds_without_miss": 0,
+        "share_misses_greedy_better": 0.35507246376811596,
+        "greedy_test_r2_mean": 0.37185133475022314,
+        "split_sd": 0.007945229685804552
+      },
+      "5": {
+        "miss_rate": 0.75,
+        "n_cases": 200,
+        "n_misses": 150,
+        "cost_mean": 0.004955571418518305,
+        "cost_sd": 0.001983011046669694,
+        "seeds_without_miss": 0,
+        "share_misses_greedy_better": 0.25333333333333335,
+        "greedy_test_r2_mean": 0.396927427351512,
+        "split_sd": 0.007639648482619512
+      }
+    },
+    "C": {
+      "2": {
+        "miss_rate": 0.28500000000000003,
+        "n_cases": 200,
+        "n_misses": 57,
+        "cost_mean": 0.005242798262873675,
+        "cost_sd": 0.008858523823379991,
+        "seeds_without_miss": 0,
+        "share_misses_greedy_better": 0.3508771929824561,
+        "greedy_test_r2_mean": 0.29086606400900583,
+        "split_sd": 0.0122008242309444
+      },
+      "3": {
+        "miss_rate": 0.5549999999999999,
+        "n_cases": 200,
+        "n_misses": 111,
+        "cost_mean": 0.0046603843911257594,
+        "cost_sd": 0.0028023003230863972,
+        "seeds_without_miss": 0,
+        "share_misses_greedy_better": 0.3333333333333333,
+        "greedy_test_r2_mean": 0.3325689952373037,
+        "split_sd": 0.010733744891272488
+      },
+      "4": {
+        "miss_rate": 0.6699999999999999,
+        "n_cases": 200,
+        "n_misses": 134,
+        "cost_mean": 0.0051641776766032845,
+        "cost_sd": 0.002609808142038808,
+        "seeds_without_miss": 0,
+        "share_misses_greedy_better": 0.3208955223880597,
+        "greedy_test_r2_mean": 0.36473406669882746,
+        "split_sd": 0.010726630063829925
+      },
+      "5": {
+        "miss_rate": 0.75,
+        "n_cases": 200,
+        "n_misses": 150,
+        "cost_mean": 0.005948110296245847,
+        "cost_sd": 0.003086519092950189,
+        "seeds_without_miss": 0,
+        "share_misses_greedy_better": 0.26666666666666666,
+        "greedy_test_r2_mean": 0.3897549230568406,
+        "split_sd": 0.010322119561648748
+      }
+    }
+  },
+  "gate": {
+    "B": {
+      "per_k": {
+        "4": {
+          "cost_mean": 0.00405230201719814,
+          "practical_threshold": 0.01,
+          "passes_practical": false,
+          "split_sd": 0.007945229685804552,
+          "sd_bar": 0.015890459371609104,
+          "passes_sd": false
+        },
+        "5": {
+          "cost_mean": 0.004955571418518305,
+          "practical_threshold": 0.01,
+          "passes_practical": false,
+          "split_sd": 0.007639648482619512,
+          "sd_bar": 0.015279296965239024,
+          "passes_sd": false
+        }
+      },
+      "verdict": "STOP"
+    },
+    "C": {
+      "per_k": {
+        "4": {
+          "cost_mean": 0.0051641776766032845,
+          "practical_threshold": 0.01,
+          "passes_practical": false,
+          "split_sd": 0.010726630063829925,
+          "sd_bar": 0.02145326012765985,
+          "passes_sd": false
+        },
+        "5": {
+          "cost_mean": 0.005948110296245847,
+          "practical_threshold": 0.01,
+          "passes_practical": false,
+          "split_sd": 0.010322119561648748,
+          "sd_bar": 0.020644239123297495,
+          "passes_sd": false
+        }
+      },
+      "verdict": "STOP"
+    }
+  },
+  "milp_direction": "STOP the MILP direction",
+  "local_search": {
+    "B": {
+      "20": {
+        "train_gain_mean": 0.00668585914667783,
+        "train_gain_sd": 0.0017832007937533827,
+        "test_gain_mean": 0.007246792109512535,
+        "test_gain_sd": 0.0036647343695559737,
+        "seeds_test_gain_positive": 10,
+        "iterations_mean": 10.8,
+        "genes_swapped_mean": 8.4,
+        "seeds_hit_max_iter": 0,
+        "per_seed": {
+          "1": {
+            "iterations": 11,
+            "hit_max_iter": false,
+            "train_r2_start": 0.6218701522402441,
+            "train_r2_end": 0.6302665905626755,
+            "train_gain": 0.008396438322431421,
+            "test_r2_start": 0.5939306705834775,
+            "test_r2_end": 0.6049195327979586,
+            "test_gain": 0.010988862214481143,
+            "genes_swapped": 10
+          },
+          "2": {
+            "iterations": 11,
+            "hit_max_iter": false,
+            "train_r2_start": 0.6257511464161927,
+            "train_r2_end": 0.634668951789911,
+            "train_gain": 0.008917805373718335,
+            "test_r2_start": 0.596483181433354,
+            "test_r2_end": 0.6063781376862768,
+            "test_gain": 0.009894956252922804,
+            "genes_swapped": 8
+          },
+          "3": {
+            "iterations": 9,
+            "hit_max_iter": false,
+            "train_r2_start": 0.628450433089903,
+            "train_r2_end": 0.6336398688042011,
+            "train_gain": 0.005189435714298085,
+            "test_r2_start": 0.5966421630514762,
+            "test_r2_end": 0.6094192017862247,
+            "test_gain": 0.012777038734748447,
+            "genes_swapped": 8
+          },
+          "4": {
+            "iterations": 16,
+            "hit_max_iter": false,
+            "train_r2_start": 0.6253539727588429,
+            "train_r2_end": 0.6347200286363914,
+            "train_gain": 0.009366055877548574,
+            "test_r2_start": 0.6066524473129246,
+            "test_r2_end": 0.6118129788482282,
+            "test_gain": 0.005160531535303603,
+            "genes_swapped": 11
+          },
+          "5": {
+            "iterations": 12,
+            "hit_max_iter": false,
+            "train_r2_start": 0.6332687344705829,
+            "train_r2_end": 0.6373436711470248,
+            "train_gain": 0.004074936676441987,
+            "test_r2_start": 0.5924383786014691,
+            "test_r2_end": 0.5961734294331205,
+            "test_gain": 0.0037350508316513764,
+            "genes_swapped": 9
+          },
+          "6": {
+            "iterations": 7,
+            "hit_max_iter": false,
+            "train_r2_start": 0.6267361387858565,
+            "train_r2_end": 0.6328933343013672,
+            "train_gain": 0.006157195515510638,
+            "test_r2_start": 0.6000490094176998,
+            "test_r2_end": 0.6072002029902479,
+            "test_gain": 0.00715119357254812,
+            "genes_swapped": 6
+          },
+          "7": {
+            "iterations": 14,
+            "hit_max_iter": false,
+            "train_r2_start": 0.6261070217597667,
+            "train_r2_end": 0.6334708894036377,
+            "train_gain": 0.0073638676438709805,
+            "test_r2_start": 0.5912574495160225,
+            "test_r2_end": 0.6018151042566502,
+            "test_gain": 0.010557654740627642,
+            "genes_swapped": 11
+          },
+          "8": {
+            "iterations": 8,
+            "hit_max_iter": false,
+            "train_r2_start": 0.6281991642215492,
+            "train_r2_end": 0.6331817353034501,
+            "train_gain": 0.004982571081900922,
+            "test_r2_start": 0.5828563550461214,
+            "test_r2_end": 0.589335049138642,
+            "test_gain": 0.006478694092520554,
+            "genes_swapped": 7
+          },
+          "9": {
+            "iterations": 6,
+            "hit_max_iter": false,
+            "train_r2_start": 0.6279213077131128,
+            "train_r2_end": 0.6345556234342126,
+            "train_gain": 0.006634315721099737,
+            "test_r2_start": 0.5954275488246156,
+            "test_r2_end": 0.5994239653176332,
+            "test_gain": 0.003996416493017629,
+            "genes_swapped": 5
+          },
+          "10": {
+            "iterations": 14,
+            "hit_max_iter": false,
+            "train_r2_start": 0.6310957608800203,
+            "train_r2_end": 0.6368717304199779,
+            "train_gain": 0.005775969539957626,
+            "test_r2_start": 0.5995256791463202,
+            "test_r2_end": 0.6012532017736242,
+            "test_gain": 0.0017275226273040234,
+            "genes_swapped": 9
+          }
+        }
+      },
+      "50": {
+        "train_gain_mean": 0.004332044519421985,
+        "train_gain_sd": 0.0010532766038317451,
+        "test_gain_mean": 0.0049407641040709275,
+        "test_gain_sd": 0.0015875544960054285,
+        "seeds_test_gain_positive": 10,
+        "iterations_mean": 23.6,
+        "genes_swapped_mean": 19.4,
+        "seeds_hit_max_iter": 0,
+        "per_seed": {
+          "1": {
+            "iterations": 21,
+            "hit_max_iter": false,
+            "train_r2_start": 0.738419669480469,
+            "train_r2_end": 0.7434945374047937,
+            "train_gain": 0.005074867924324655,
+            "test_r2_start": 0.6875506447023586,
+            "test_r2_end": 0.6926133072860672,
+            "test_gain": 0.005062662583708577,
+            "genes_swapped": 19
+          },
+          "2": {
+            "iterations": 35,
+            "hit_max_iter": false,
+            "train_r2_start": 0.7402601942700688,
+            "train_r2_end": 0.74571228698427,
+            "train_gain": 0.005452092714201107,
+            "test_r2_start": 0.6879263784425713,
+            "test_r2_end": 0.6951885553650481,
+            "test_gain": 0.007262176922476771,
+            "genes_swapped": 25
+          },
+          "3": {
+            "iterations": 29,
+            "hit_max_iter": false,
+            "train_r2_start": 0.7419821284138248,
+            "train_r2_end": 0.7465257255052757,
+            "train_gain": 0.004543597091450913,
+            "test_r2_start": 0.6924210410267326,
+            "test_r2_end": 0.697610343437569,
+            "test_gain": 0.005189302410836372,
+            "genes_swapped": 23
+          },
+          "4": {
+            "iterations": 20,
+            "hit_max_iter": false,
+            "train_r2_start": 0.7394859837699197,
+            "train_r2_end": 0.7436996569136833,
+            "train_gain": 0.004213673143763641,
+            "test_r2_start": 0.6960187129474706,
+            "test_r2_end": 0.702348763338225,
+            "test_gain": 0.006330050390754405,
+            "genes_swapped": 18
+          },
+          "5": {
+            "iterations": 18,
+            "hit_max_iter": false,
+            "train_r2_start": 0.7439221876874507,
+            "train_r2_end": 0.7464563020350724,
+            "train_gain": 0.002534114347621741,
+            "test_r2_start": 0.6810803467157075,
+            "test_r2_end": 0.6879156086860929,
+            "test_gain": 0.00683526197038542,
+            "genes_swapped": 17
+          },
+          "6": {
+            "iterations": 25,
+            "hit_max_iter": false,
+            "train_r2_start": 0.7377006377314186,
+            "train_r2_end": 0.7437090794253776,
+            "train_gain": 0.006008441693958977,
+            "test_r2_start": 0.6886475309243056,
+            "test_r2_end": 0.6921628738973372,
+            "test_gain": 0.0035153429730315766,
+            "genes_swapped": 22
+          },
+          "7": {
+            "iterations": 18,
+            "hit_max_iter": false,
+            "train_r2_start": 0.7408519807959604,
+            "train_r2_end": 0.7446913674295019,
+            "train_gain": 0.0038393866335415527,
+            "test_r2_start": 0.6876554569189794,
+            "test_r2_end": 0.6897308778309168,
+            "test_gain": 0.0020754209119373535,
+            "genes_swapped": 13
+          },
+          "8": {
+            "iterations": 30,
+            "hit_max_iter": false,
+            "train_r2_start": 0.741840158136057,
+            "train_r2_end": 0.7450694582435866,
+            "train_gain": 0.0032293001075296424,
+            "test_r2_start": 0.6838787623130251,
+            "test_r2_end": 0.6877138355142001,
+            "test_gain": 0.0038350732011749322,
+            "genes_swapped": 22
+          },
+          "9": {
+            "iterations": 21,
+            "hit_max_iter": false,
+            "train_r2_start": 0.7414780722164438,
+            "train_r2_end": 0.7462333551782465,
+            "train_gain": 0.00475528296180272,
+            "test_r2_start": 0.6877811613310888,
+            "test_r2_end": 0.6926137799311565,
+            "test_gain": 0.004832618600067673,
+            "genes_swapped": 17
+          },
+          "10": {
+            "iterations": 19,
+            "hit_max_iter": false,
+            "train_r2_start": 0.7424664277451197,
+            "train_r2_end": 0.7461361163211446,
+            "train_gain": 0.0036696885760248987,
+            "test_r2_start": 0.6846418536795056,
+            "test_r2_end": 0.6891115847558418,
+            "test_gain": 0.004469731076336192,
+            "genes_swapped": 18
+          }
+        }
+      }
+    },
+    "C": {
+      "20": {
+        "train_gain_mean": 0.005807686634968801,
+        "train_gain_sd": 0.002298304814748784,
+        "test_gain_mean": 0.0039714253877239925,
+        "test_gain_sd": 0.0034585986522083696,
+        "seeds_test_gain_positive": 8,
+        "iterations_mean": 8.4,
+        "genes_swapped_mean": 7.3,
+        "seeds_hit_max_iter": 0,
+        "per_seed": {
+          "1": {
+            "iterations": 10,
+            "hit_max_iter": false,
+            "train_r2_start": 0.6195218907958613,
+            "train_r2_end": 0.6257934187341423,
+            "train_gain": 0.006271527938281007,
+            "test_r2_start": 0.5887653131570436,
+            "test_r2_end": 0.5961405237924584,
+            "test_gain": 0.007375210635414797,
+            "genes_swapped": 8
+          },
+          "2": {
+            "iterations": 4,
+            "hit_max_iter": false,
+            "train_r2_start": 0.6245111415475386,
+            "train_r2_end": 0.6275580528810838,
+            "train_gain": 0.003046911333545177,
+            "test_r2_start": 0.5902162792485299,
+            "test_r2_end": 0.5919659308234552,
+            "test_gain": 0.0017496515749252373,
+            "genes_swapped": 4
+          },
+          "3": {
+            "iterations": 9,
+            "hit_max_iter": false,
+            "train_r2_start": 0.6113360865144524,
+            "train_r2_end": 0.6160192994230578,
+            "train_gain": 0.004683212908605405,
+            "test_r2_start": 0.5869100466260154,
+            "test_r2_end": 0.5934395576474903,
+            "test_gain": 0.006529511021474921,
+            "genes_swapped": 9
+          },
+          "4": {
+            "iterations": 7,
+            "hit_max_iter": false,
+            "train_r2_start": 0.6256973963963661,
+            "train_r2_end": 0.6304853583280554,
+            "train_gain": 0.0047879619316892885,
+            "test_r2_start": 0.6021242092346442,
+            "test_r2_end": 0.5994608086523655,
+            "test_gain": -0.002663400582278652,
+            "genes_swapped": 7
+          },
+          "5": {
+            "iterations": 13,
+            "hit_max_iter": false,
+            "train_r2_start": 0.6187986566734542,
+            "train_r2_end": 0.6304908096012132,
+            "train_gain": 0.011692152927758936,
+            "test_r2_start": 0.5783404758111584,
+            "test_r2_end": 0.5858465636070151,
+            "test_gain": 0.0075060877958567085,
+            "genes_swapped": 11
+          },
+          "6": {
+            "iterations": 7,
+            "hit_max_iter": false,
+            "train_r2_start": 0.6180260894094215,
+            "train_r2_end": 0.6227067154333217,
+            "train_gain": 0.004680626023900181,
+            "test_r2_start": 0.5907331320125035,
+            "test_r2_end": 0.5969581024626727,
+            "test_gain": 0.0062249704501691205,
+            "genes_swapped": 6
+          },
+          "7": {
+            "iterations": 12,
+            "hit_max_iter": false,
+            "train_r2_start": 0.6254193559863013,
+            "train_r2_end": 0.6305256758186587,
+            "train_gain": 0.005106319832357431,
+            "test_r2_start": 0.5907768441534187,
+            "test_r2_end": 0.5903643299526156,
+            "test_gain": -0.00041251420080312684,
+            "genes_swapped": 9
+          },
+          "8": {
+            "iterations": 7,
+            "hit_max_iter": false,
+            "train_r2_start": 0.619645939125218,
+            "train_r2_end": 0.6262242846987625,
+            "train_gain": 0.00657834557354442,
+            "test_r2_start": 0.5778414459719141,
+            "test_r2_end": 0.5835162998779282,
+            "test_gain": 0.005674853906014077,
+            "genes_swapped": 7
+          },
+          "9": {
+            "iterations": 8,
+            "hit_max_iter": false,
+            "train_r2_start": 0.6072498801458153,
+            "train_r2_end": 0.6132778013032161,
+            "train_gain": 0.006027921157400806,
+            "test_r2_start": 0.5666522474799977,
+            "test_r2_end": 0.5711709531374038,
+            "test_gain": 0.004518705657406197,
+            "genes_swapped": 7
+          },
+          "10": {
+            "iterations": 7,
+            "hit_max_iter": false,
+            "train_r2_start": 0.6189235458241533,
+            "train_r2_end": 0.6241254325467587,
+            "train_gain": 0.005201886722605353,
+            "test_r2_start": 0.5868879349422128,
+            "test_r2_end": 0.5900991125612735,
+            "test_gain": 0.0032111776190606456,
+            "genes_swapped": 5
+          }
+        }
+      },
+      "50": {
+        "train_gain_mean": 0.0029886071193137797,
+        "train_gain_sd": 0.0008331611923943887,
+        "test_gain_mean": 0.0014938192760755142,
+        "test_gain_sd": 0.0018014938186220381,
+        "seeds_test_gain_positive": 9,
+        "iterations_mean": 15.9,
+        "genes_swapped_mean": 13.6,
+        "seeds_hit_max_iter": 0,
+        "per_seed": {
+          "1": {
+            "iterations": 10,
+            "hit_max_iter": false,
+            "train_r2_start": 0.7280701583400524,
+            "train_r2_end": 0.7300277343936707,
+            "train_gain": 0.0019575760536183484,
+            "test_r2_start": 0.6741474458036414,
+            "test_r2_end": 0.6753846962021538,
+            "test_gain": 0.0012372503985124128,
+            "genes_swapped": 10
+          },
+          "2": {
+            "iterations": 8,
+            "hit_max_iter": false,
+            "train_r2_start": 0.7308953758885565,
+            "train_r2_end": 0.7326587632074597,
+            "train_gain": 0.0017633873189032423,
+            "test_r2_start": 0.6733997805475429,
+            "test_r2_end": 0.6746625152735033,
+            "test_gain": 0.0012627347259603905,
+            "genes_swapped": 8
+          },
+          "3": {
+            "iterations": 17,
+            "hit_max_iter": false,
+            "train_r2_start": 0.7234274464031263,
+            "train_r2_end": 0.7257567718237403,
+            "train_gain": 0.002329325420614037,
+            "test_r2_start": 0.6682065716446881,
+            "test_r2_end": 0.6696264173687236,
+            "test_gain": 0.0014198457240355289,
+            "genes_swapped": 13
+          },
+          "4": {
+            "iterations": 15,
+            "hit_max_iter": false,
+            "train_r2_start": 0.7318113218478594,
+            "train_r2_end": 0.735809807937482,
+            "train_gain": 0.00399848608962261,
+            "test_r2_start": 0.686381047606871,
+            "test_r2_end": 0.68929695946934,
+            "test_gain": 0.0029159118624689784,
+            "genes_swapped": 13
+          },
+          "5": {
+            "iterations": 12,
+            "hit_max_iter": false,
+            "train_r2_start": 0.7323985395670338,
+            "train_r2_end": 0.7355279974484336,
+            "train_gain": 0.003129457881399733,
+            "test_r2_start": 0.6670474626102973,
+            "test_r2_end": 0.6680916423472811,
+            "test_gain": 0.0010441797369837857,
+            "genes_swapped": 12
+          },
+          "6": {
+            "iterations": 17,
+            "hit_max_iter": false,
+            "train_r2_start": 0.728466250402806,
+            "train_r2_end": 0.7310131211320414,
+            "train_gain": 0.0025468707292354287,
+            "test_r2_start": 0.6780933479470606,
+            "test_r2_end": 0.6833913545201953,
+            "test_gain": 0.005298006573134728,
+            "genes_swapped": 13
+          },
+          "7": {
+            "iterations": 19,
+            "hit_max_iter": false,
+            "train_r2_start": 0.7307343987429734,
+            "train_r2_end": 0.7337774406976593,
+            "train_gain": 0.0030430419546858545,
+            "test_r2_start": 0.6748793899827161,
+            "test_r2_end": 0.6735882309198563,
+            "test_gain": -0.0012911590628598146,
+            "genes_swapped": 17
+          },
+          "8": {
+            "iterations": 19,
+            "hit_max_iter": false,
+            "train_r2_start": 0.7292105423527653,
+            "train_r2_end": 0.7334066332793133,
+            "train_gain": 0.004196090926548046,
+            "test_r2_start": 0.6685283068255389,
+            "test_r2_end": 0.6685995831031648,
+            "test_gain": 7.127627762593125e-05,
+            "genes_swapped": 18
+          },
+          "9": {
+            "iterations": 27,
+            "hit_max_iter": false,
+            "train_r2_start": 0.7196176469956617,
+            "train_r2_end": 0.7233094511200447,
+            "train_gain": 0.00369180412438308,
+            "test_r2_start": 0.6613233846759246,
+            "test_r2_end": 0.6616716184059381,
+            "test_gain": 0.0003482337300135807,
+            "genes_swapped": 19
+          },
+          "10": {
+            "iterations": 15,
+            "hit_max_iter": false,
+            "train_r2_start": 0.7285445705568505,
+            "train_r2_end": 0.7317746012509779,
+            "train_gain": 0.003230030694127417,
+            "test_r2_start": 0.6697514361137292,
+            "test_r2_end": 0.6723833489086088,
+            "test_gain": 0.0026319127948796206,
+            "genes_swapped": 13
+          }
+        }
+      }
+    }
+  },
+  "outputs": {
+    "cases_csv": "results_rerun/r3/costs.csv"
+  }
+}
