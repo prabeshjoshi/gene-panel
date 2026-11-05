@@ -150,3 +150,31 @@ def plot_headroom(ks, rand_med, rand_lo, rand_hi, ceil_mean, ceil_sd, q2_med, ou
     ax.set_title(title)
     ax.legend(fontsize=8, loc="lower right")
     return _save(fig, out_path)
+
+
+# Rerun methods: primary methods solid; reference / report-only versions dashed or dotted.
+RERUN_STYLE = {
+    "greedy": ("#D55E00", "-"), "pivoted_qr": ("#56B4E9", "-"), "clustering": ("#009E73", "-"),
+    "multitask_lasso": ("#CC79A7", "-"), "pls2_vip_iterative": ("#E69F00", "-"),
+    "leverage_naive": ("#0072B2", "--"), "pls2_vip_once": ("#E69F00", "--"),
+    "clustering_average": ("#009E73", ":"),
+}
+
+
+def plot_arm(ks, method_means: dict, rand_med, rand_lo, rand_hi, out_path, ylabel, title=""):
+    """Rerun R2: test R2 vs k for every method in one arm, with the random-panel band."""
+    ks = np.asarray(ks)
+    fig, ax = plt.subplots(figsize=(7.2, 4.6))
+    ax.fill_between(ks, rand_lo, rand_hi, color="#7f7f7f", alpha=0.25, label="random, 5–95%")
+    ax.plot(ks, rand_med, color="#4d4d4d", marker="o", ms=3, label="random median")
+    for m, vals in method_means.items():
+        color, ls = RERUN_STYLE.get(m, ("#333333", "-"))
+        ax.plot(ks, vals, marker="o", ms=4, color=color, ls=ls, label=m)
+    ax.set_xscale("log")
+    ax.set_xticks(ks)
+    ax.set_xticklabels([str(k) for k in ks])
+    ax.set_xlabel("panel size k")
+    ax.set_ylabel(ylabel)
+    ax.set_title(title, fontsize=10)
+    ax.legend(fontsize=7.5, loc="center left", bbox_to_anchor=(1.01, 0.5), frameon=False)
+    return _save(fig, out_path)

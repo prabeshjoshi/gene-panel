@@ -126,3 +126,22 @@ def read_gct(path: str | Path) -> tuple[pd.DataFrame, pd.DataFrame]:
         index=gene_id,
     )
     return counts, gene_meta
+
+
+def committed_config_hash(root: Path, path: Path) -> str:
+    """Hash of the last commit touching `path`; refuse if it is uncommitted or edited.
+
+    Used by every rerun script so each log can name the pre-registered config it ran under.
+    """
+    import subprocess
+
+    rel = str(Path(path).resolve().relative_to(Path(root).resolve()))
+    dirty = subprocess.run(["git", "-C", str(root), "status", "--porcelain", "--", rel],
+                           capture_output=True, text=True, check=True).stdout.strip()
+    if dirty:
+        raise SystemExit(f"{rel} has uncommitted changes; commit it before running analysis")
+    h = subprocess.run(["git", "-C", str(root), "log", "-1", "--format=%H", "--", rel],
+                       capture_output=True, text=True, check=True).stdout.strip()
+    if not h:
+        raise SystemExit(f"{rel} is not committed")
+    return h

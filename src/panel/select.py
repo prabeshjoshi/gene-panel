@@ -265,10 +265,12 @@ class PoolObjective:
     total: float
 
     @classmethod
-    def fit(cls, Z: np.ndarray, pool: np.ndarray) -> "PoolObjective":
+    def fit(cls, Z: np.ndarray, pool: np.ndarray, targ=None) -> "PoolObjective":
+        """targ = target columns (default: all genes, as in the pilot)."""
         Zp = Z[:, pool]
-        A = Zp.T @ Z
-        return cls(G=Zp.T @ Zp, H=A @ A.T, total=float((Z ** 2).sum()))
+        T = Z if targ is None else Z[:, np.asarray(targ)]
+        A = Zp.T @ T
+        return cls(G=Zp.T @ Zp, H=A @ A.T, total=float((T ** 2).sum()))
 
     def batch(self, subsets: np.ndarray) -> np.ndarray:
         """f for a (B, k) array of pool-index subsets, vectorised."""

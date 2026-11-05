@@ -99,3 +99,27 @@ def build_arms(X: pd.DataFrame, split: dict, male: pd.Series, seed: int, cfg: di
     b = arm_b(X, split, male, int(cfg["n_genes"]))
     c = arm_c(b, seed, float(cfg["arm_c_candidate_fraction"]), int(cfg["rng_stream_arm_c"]))
     return {"A": a, "B": b, "C": c}
+
+
+def included_samples(X: pd.DataFrame, genes: pd.DataFrame, rcfg: dict):
+    """Sex calls from the pre-registered markers; returns (calls, included ids, male Series)."""
+    kept = genes[genes["status"] == "kept"].set_index("symbol")["gene_id"]
+    ids = []
+    for role in ("sex_male_marker", "sex_female_marker"):
+        sym = rcfg[role]
+        if sym not in kept.index or kept[sym] not in X.columns:
+            raise SystemExit(f"marker {sym} is not in the processed matrix")
+        ids.append(kept[sym])
+    calls = sex_calls(X, ids[0], ids[1], float(rcfg["sex_ambiguous_log2cpm"]))
+    included = calls.index[~calls["ambiguous"]]
+    return calls, included, calls.loc[included, "sex"] == "male"
+
+
+def sex_residualized_all(X: pd.DataFrame, male: pd.Series) -> pd.DataFrame:
+    """Descriptive only (soft overlap): remove sex group means using all included samples."""
+    Xi = X.loc[male.index]
+    m = male.to_numpy()
+    out = Xi.copy()
+    out.loc[m] = Xi.loc[m] - Xi.loc[m].mean()
+    out.loc[~m] = Xi.loc[~m] - Xi.loc[~m].mean()
+    return out
