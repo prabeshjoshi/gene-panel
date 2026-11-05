@@ -4,6 +4,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import matplotlib
+import matplotlib.ticker
 import numpy as np
 
 matplotlib.use("Agg")
@@ -31,6 +32,8 @@ def plot_r2_vs_q(qs, mean, sd, out_path, gate_q=None, gate_value=None, title="")
 
 
 def _save(fig, out_path):
+    for ax in fig.axes:  # log x-axes: keep only the explicit k / q tick labels
+        ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
     fig.tight_layout()
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
