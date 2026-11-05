@@ -190,3 +190,67 @@ def pls_vip(Z: np.ndarray, T: np.ndarray, n_components: int, max_iter: int = 500
 
 def top_k(scores: np.ndarray, k: int) -> np.ndarray:
     return np.argsort(-scores, kind="stable")[:k]
+
+
+# --------------------------------------------------------------------------------------
+# Phase 3: exact optimum on a small candidate pool. Targets are always ALL genes.
+# --------------------------------------------------------------------------------------
+
+@dataclass
+class PoolObjective:
+    """OLS objective on a candidate pool, from training data only.
+
+    f(S) = tr(Z'Z) - tr(inv(G_SS) H_SS), with G = Zp'Zp and H = (Zp'Z)(Zp'Z)', is the residual
+    sum of squares when all genes Z are regressed (OLS, no intercept) on the pool genes S.
+    Indices in S are positions within the pool.
+    """
+
+    G: np.ndarray
+    H: np.ndarray
+    total: float
+
+    @classmethod
+    def fit(cls, Z: np.ndarray, pool: np.ndarray) -> "PoolObjective":
+        Zp = Z[:, pool]
+        A = Zp.T @ Z
+        return cls(G=Zp.T @ Zp, H=A @ A.T, total=float((Z ** 2).sum()))
+
+    def batch(self, subsets: np.ndarray) -> np.ndarray:
+        """f for a (B, k) array of pool-index subsets, vectorised."""
+        c = np.asarray(subsets, dtype=np.intp)
+        Gs = self.G[c[:, :, None], c[:, None, :]]
+        Hs = self.H[c[:, :, None], c[:, None, :]]
+        return self.total - np.einsum("bii->b", np.linalg.solve(Gs, Hs))
+
+    def __call__(self, subset) -> float:
+        return float(self.batch(np.asarray(subset)[None, :])[0])
+
+    def r2(self, f_value: float) -> float:
+        """Training R2_all (OLS) corresponding to an objective value."""
+        return 1.0 - f_value / self.total
+
+
+def exhaustive_optimum(obj: PoolObjective, pool_size: int, k: int, batch_size: int):
+    """Exact minimiser of f over all k-subsets of the pool, scored in batches.
+
+    Returns (best subset, best f, array of f for every subset in combinations order).
+    """
+    from itertools import combinations
+
+    combos = np.array(list(combinations(range(pool_size), k)), dtype=np.int16)
+    f = np.empty(len(combos))
+    for i in range(0, len(combos), batch_size):
+        f[i:i + batch_size] = obj.batch(combos[i:i + batch_size])
+    best = int(np.argmin(f))
+    return combos[best].astype(np.intp), float(f[best]), f
+
+
+def greedy_on_objective(obj: PoolObjective, pool_size: int, k: int) -> np.ndarray:
+    """Greedy forward selection on f over the pool; returns pool indices in selection order."""
+    chosen: list[int] = []
+    for _ in range(k):
+        cands = np.array([j for j in range(pool_size) if j not in chosen])
+        subsets = np.column_stack([np.tile(chosen, (len(cands), 1)).astype(np.intp), cands]) \
+            if chosen else cands[:, None]
+        chosen.append(int(cands[np.argmin(obj.batch(subsets))]))
+    return np.array(chosen)

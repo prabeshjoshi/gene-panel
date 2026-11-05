@@ -56,6 +56,19 @@ pls_max_iter: 5000             # NIPALS iterations per component (sklearn defaul
 gate_heuristics_k: 20
 gate_noise_multiple_of_sd: 1   # "more than noise": mean paired diff > this x SD of paired diff
 
+# --- phase 3 (toy exact optimum); toy_pool_size, toy_k, toy_n_pools are above ---
+toy_seeds: [1, 2, 3]           # seed 1 is the main run; 2 and 3 confirm
+toy_batch_size: 50000          # subsets scored per vectorised batch
+toy_validate_n: 50             # random subsets checked against direct OLS
+toy_validate_rtol: 1.0e-8
+toy_n_boot: 1000               # bootstrap over test samples for the cost of a miss
+rng_stream_toy_pool: 3
+rng_stream_toy_validate: 4
+rng_stream_toy_boot: 5
+gate_toy_k_min: 4              # gate looks at k >= this
+gate_toy_miss_share: 0.2       # "real share": greedy misses the optimum in >= this share of pools
+gate_toy_cost_multiple_of_se: 2  # mean test cost of misses > this x bootstrap SE
+
 # --- gates ---
 gate_lowrank_r2_at_20: 0.5
 gate_headroom_multiple_of_sd: 3

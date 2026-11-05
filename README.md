@@ -19,6 +19,7 @@ python scripts/00_data.py      # parse, filter, normalise, splits  -> data/proce
 python scripts/01_lowrank.py   # Phase 0                           -> results/phase0/
 python scripts/02_headroom.py  # Phase 1                           -> results/phase1/
 python scripts/03_heuristics.py # Phase 2                          -> results/phase2/
+python scripts/04_toy_exact.py  # Phase 3                          -> results/phase3/
 ```
 
 Data is never committed. Every run writes `results/<phase>/log.json` (config, seeds, timings,
@@ -50,12 +51,20 @@ and fit no model.
 | 0 low rank | mean test R2_all at q = 20 >= 0.5 | 0.694 (SD 0.003) | GO |
 | 1 headroom | (ceiling - random median) at k = 20 >= 3 x SD across seeds | 0.177 vs SD 0.0054 (33x) | GO |
 | 2 heuristics | at k = 20, best beats random median AND >= 1 method pair differs, beyond paired SD | greedy +0.080 (SD 0.005); 10/10 pairs differ | GO |
+| 3 toy exact | k >= 4: greedy misses the optimum in >= 20% of pools AND mean test cost of misses > 2 x bootstrap SE, on seeds 1-3 | misses 72-85%; cost +0.005 to +0.009 R2 (2.6-4.1 x SE) | GO |
 
 Phase 2, test R2_all at k = 20 (random median 0.518, ceiling 0.694): greedy 0.597, clustering
 (complete linkage) 0.562, MultiTaskLasso 0.529, PLS2-VIP 0.506, leverage 0.323. Leverage is far
 below random because it concentrates on one tight module (11 of 20 genes are sex-chromosome genes).
 Average-linkage clustering (first run) gave 0.331: it collapses into one ~936-gene cluster plus
 outliers, so the medoids are outlier genes; `cluster_linkage` is therefore "complete".
+
+Phase 3 (40-gene pools, all 1000 genes as targets, exact optimum by exhaustive search): greedy
+finds the exact optimum in 15-80% of pools, less often as k grows, but when it misses its panel
+is still near the top (median rank 2-19 of up to 658,008 subsets) and the test cost is small
+(about 0.005-0.009 R2, roughly the size of the seed-to-seed noise in Phase 2). In 5-12 of ~30
+misses per seed the greedy panel is better on test. Leverage never and clustering rarely hit the
+optimum.
 
 Data after filtering: 818 samples (one per donor) x 14,424 genes; 654 train / 164 test per seed;
 top 1000 genes by training variance per split. Ridge alpha = 10 (5-fold CV, seed 1 training data).

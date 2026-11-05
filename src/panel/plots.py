@@ -47,6 +47,35 @@ METHOD_COLORS = {"greedy": "#D55E00", "leverage": "#0072B2", "cluster": "#009E73
                  "mtl": "#CC79A7", "pls_vip": "#E69F00"}
 
 
+def plot_toy(ks, greedy_hit_by_seed: dict, other_hit: dict, misses, out_path, title=""):
+    """Left: share of pools where each method finds the exact optimum, by k.
+    Right: for every greedy miss, training-R2 gap vs test-R2 cost (optimum minus greedy)."""
+    ks = np.asarray(ks)
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(10, 4.2))
+    shades = ["#D55E00", "#E8875A", "#F2B08F"]
+    for i, (s, hits) in enumerate(greedy_hit_by_seed.items()):
+        a1.plot(ks, hits, marker="o", color=shades[i % len(shades)], label=f"greedy, seed {s}")
+    for m, hits in other_hit.items():
+        a1.plot(ks, hits, marker="s", ls="--", color=METHOD_COLORS[m], label=f"{m} (mean of seeds)")
+    a1.set_ylim(-0.03, 1.03)
+    a1.set_xticks(ks)
+    a1.set_xlabel("panel size k")
+    a1.set_ylabel("share of pools that hit the exact optimum")
+    a1.legend(fontsize=8)
+    if misses:
+        tr, te, kk = (np.array(v) for v in zip(*misses))
+        for k in np.unique(kk):
+            sel_ = kk == k
+            a2.scatter(tr[sel_], te[sel_], s=18, alpha=0.75, label=f"k = {k}")
+        a2.axhline(0, color="grey", lw=1)
+        a2.legend(fontsize=8)
+    a2.set_xlabel("training R2 lost by greedy (OLS)")
+    a2.set_ylabel("test R2_all cost of greedy (optimum − greedy)")
+    a2.set_title("greedy misses", fontsize=10)
+    fig.suptitle(title, fontsize=11)
+    return _save(fig, out_path)
+
+
 def plot_heuristics(ks, method_means: dict, rand_med, rand_lo, rand_hi, ceiling, out_path,
                     gate_k=None, title=""):
     """Test R2_all vs k for each heuristic, against random panels and the PCA ceiling."""
